@@ -21,11 +21,13 @@ type Cache[S comparable, T any] struct {
 	mu         sync.RWMutex
 }
 
-func NewCache[S comparable, T any](defaultTTL time.Duration) *Cache[S, T] {
-	return &Cache[S, T]{
+func NewCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration) *Cache[S, T] {
+	cache := &Cache[S, T]{
 		defaultTTL: defaultTTL,
 		cache:      make(map[S]volatile[T]),
 	}
+	go cache.FlushInterval(ctx, time.Minute)
+	return cache
 }
 
 func (c *Cache[S, T]) Get(key S) (T, bool) {
