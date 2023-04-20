@@ -53,6 +53,16 @@ func (c *Cache[S, T]) Set(key S, value T) {
 	}
 }
 
+func (c *Cache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.cache[key] = volatile[T]{
+		Value: value,
+		TTL:   time.Now().Add(ttl).Unix(),
+	}
+}
+
 func (c *Cache[S, T]) Delete(key S) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
