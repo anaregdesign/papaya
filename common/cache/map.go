@@ -16,21 +16,22 @@ func (v *volatile[T]) IsExpired() bool {
 }
 
 type Cache[S comparable, T any] struct {
-	TTL   time.Duration
-	cache map[S]volatile[T]
-	mu    sync.RWMutex
+	defaultTTL time.Duration
+	cache      map[S]volatile[T]
+	mu         sync.RWMutex
 }
 
-func NewCache[S comparable, T any](ttl time.Duration) *Cache[S, T] {
+func NewCache[S comparable, T any](defaultTTL time.Duration) *Cache[S, T] {
 	return &Cache[S, T]{
-		TTL:   ttl,
-		cache: make(map[S]volatile[T]),
+		defaultTTL: defaultTTL,
+		cache:      make(map[S]volatile[T]),
 	}
 }
 
 func (c *Cache[S, T]) Get(key S) (T, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
 	if v, ok := c.cache[key]; ok {
 		if v.IsExpired() {
 			var noop T
@@ -48,7 +49,7 @@ func (c *Cache[S, T]) Set(key S, value T) {
 
 	c.cache[key] = volatile[T]{
 		Value: value,
-		TTL:   time.Now().Add(c.TTL).Unix(),
+		TTL:   time.Now().Add(c.defaultTTL).Unix(),
 	}
 }
 
