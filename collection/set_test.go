@@ -1,7 +1,8 @@
-package model
+package collection
 
 import (
 	"fmt"
+	"github.com/anaregdesign/papaya/model"
 	"reflect"
 	"testing"
 )
@@ -55,7 +56,7 @@ func TestSet_Add(t *testing.T) {
 
 func TestSet_AllMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate Predicate[T]
+		predicate model.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -90,7 +91,7 @@ func TestSet_AllMatch(t *testing.T) {
 
 func TestSet_AnyMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate Predicate[T]
+		predicate model.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -186,7 +187,7 @@ func TestSet_Contains(t *testing.T) {
 
 func TestSet_Filter(t *testing.T) {
 	type args[T comparable] struct {
-		predicate Predicate[T]
+		predicate model.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -217,7 +218,7 @@ func TestSet_Filter(t *testing.T) {
 
 func TestSet_ForEach(t *testing.T) {
 	type args[T comparable] struct {
-		consumer Consumer[T]
+		consumer model.Consumer[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -248,7 +249,7 @@ func TestSet_ForEach(t *testing.T) {
 
 func TestSet_NoneMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate Predicate[T]
+		predicate model.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -283,7 +284,7 @@ func TestSet_NoneMatch(t *testing.T) {
 
 func TestSet_Reduce(t *testing.T) {
 	type args[T comparable] struct {
-		operator Operator[T]
+		operator model.Operator[T]
 	}
 	type testCase[T comparable] struct {
 		name string

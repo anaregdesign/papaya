@@ -1,4 +1,6 @@
-package model
+package collection
+
+import "github.com/anaregdesign/papaya/model"
 
 type Set[T comparable] struct {
 	set map[T]struct{}
@@ -39,13 +41,13 @@ func (s *Set[T]) Values() []T {
 	return values
 }
 
-func (s *Set[T]) ForEach(consumer Consumer[T]) {
+func (s *Set[T]) ForEach(consumer model.Consumer[T]) {
 	for value := range s.set {
 		consumer(value)
 	}
 }
 
-func (s *Set[T]) Filter(predicate Predicate[T]) {
+func (s *Set[T]) Filter(predicate model.Predicate[T]) {
 	for k, _ := range s.set {
 		if !predicate(k) {
 			delete(s.set, k)
@@ -53,7 +55,7 @@ func (s *Set[T]) Filter(predicate Predicate[T]) {
 	}
 }
 
-func (s *Set[T]) Reduce(operator Operator[T]) T {
+func (s *Set[T]) Reduce(operator model.Operator[T]) T {
 	var result T
 	for value := range s.set {
 		result = operator(result, value)
@@ -61,7 +63,7 @@ func (s *Set[T]) Reduce(operator Operator[T]) T {
 	return result
 }
 
-func (s *Set[T]) AnyMatch(predicate Predicate[T]) bool {
+func (s *Set[T]) AnyMatch(predicate model.Predicate[T]) bool {
 	for value := range s.set {
 		if predicate(value) {
 			return true
@@ -70,7 +72,7 @@ func (s *Set[T]) AnyMatch(predicate Predicate[T]) bool {
 	return false
 }
 
-func (s *Set[T]) AllMatch(predicate Predicate[T]) bool {
+func (s *Set[T]) AllMatch(predicate model.Predicate[T]) bool {
 	for value := range s.set {
 		if !predicate(value) {
 			return false
@@ -79,7 +81,7 @@ func (s *Set[T]) AllMatch(predicate Predicate[T]) bool {
 	return true
 }
 
-func (s *Set[T]) NoneMatch(predicate Predicate[T]) bool {
+func (s *Set[T]) NoneMatch(predicate model.Predicate[T]) bool {
 	for value := range s.set {
 		if predicate(value) {
 			return false

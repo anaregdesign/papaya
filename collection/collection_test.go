@@ -2,7 +2,7 @@ package collection
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/common/model"
+	"github.com/anaregdesign/papaya/model"
 	"reflect"
 	"testing"
 )
