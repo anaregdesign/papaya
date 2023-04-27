@@ -14,7 +14,9 @@ func TestForEach(t *testing.T) {
 
 	t.Run("valid case", func(t *testing.T) {
 		ForEach(ctx, a[:], func(i int) {
-			t.Log(i)
+			if a[i] != i {
+				t.Errorf("ForEach() = %v, want %v", a[i], i)
+			}
 		})
 	})
 }
