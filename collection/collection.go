@@ -2,7 +2,7 @@ package collection
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/common/model"
+	"github.com/anaregdesign/papaya/model"
 	"golang.org/x/sync/semaphore"
 	"runtime"
 	"sync"
