@@ -106,3 +106,32 @@ func TestFilter(t *testing.T) {
 		})
 	}
 }
+
+func TestContains(t *testing.T) {
+	type args[T comparable] struct {
+		slice   []T
+		element T
+	}
+	type testCase[T comparable] struct {
+		name string
+		args args[T]
+		want bool
+	}
+	tests := []testCase[int]{
+		{
+			name: "valid case",
+			args: args[int]{
+				slice:   []int{1, 2, 3, 4, 5},
+				element: 3,
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Contains(tt.args.slice, tt.args.element); got != tt.want {
+				t.Errorf("Contains() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

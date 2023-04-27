@@ -57,3 +57,12 @@ func Filter[T any](ctx context.Context, slice []T, predicate model.Predicate[T])
 	}
 	return result
 }
+
+func Contains[T comparable](slice []T, element T) bool {
+	for _, e := range slice {
+		if e == element {
+			return true
+		}
+	}
+	return false
+}

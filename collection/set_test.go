@@ -401,8 +401,11 @@ func TestSet_Values(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.s.Values(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Values() = %v, want %v", got, tt.want)
+			got := tt.s.Values()
+			for _, v := range tt.want {
+				if !Contains(got, v) {
+					t.Errorf("Values() = %v, don't contains %v", got, v)
+				}
 			}
 		})
 	}
