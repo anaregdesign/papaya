@@ -2,11 +2,14 @@ package collection
 
 import (
 	"context"
+	"github.com/anaregdesign/papaya/common/model"
+	"reflect"
 	"testing"
 )
 
+var ctx = context.Background()
+
 func TestForEach(t *testing.T) {
-	ctx := context.Background()
 	var a [32]int
 	for i := 0; i < len(a); i++ {
 		a[i] = i
@@ -22,7 +25,6 @@ func TestForEach(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-	ctx := context.Background()
 	var a [32]int
 	for i := 0; i < len(a); i++ {
 		a[i] = i
@@ -38,4 +40,36 @@ func TestMap(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestReduce(t *testing.T) {
+	add := func(a, b int) int { return a + b }
+	type args[T any] struct {
+		ctx      context.Context
+		slice    []T
+		operator model.Operator[T]
+	}
+	type testCase[T any] struct {
+		name string
+		args args[T]
+		want T
+	}
+	tests := []testCase[int]{
+		{
+			name: "valid case",
+			args: args[int]{
+				ctx:      ctx,
+				slice:    []int{1, 2, 3, 4, 5},
+				operator: add,
+			},
+			want: 15,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Reduce(tt.args.ctx, tt.args.slice, tt.args.operator); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Reduce() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

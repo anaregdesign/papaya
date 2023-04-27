@@ -39,3 +39,20 @@ func Map[S any, T any](ctx context.Context, slice []S, function model.Function[S
 	wg.Wait()
 	return result
 }
+
+func Reduce[T any](ctx context.Context, slice []T, operator model.Operator[T]) T {
+	var wg sync.WaitGroup
+	sem := semaphore.NewWeighted(int64(runtime.NumCPU()))
+	result := slice[0]
+	for _, element := range slice[1:] {
+		wg.Add(1)
+		sem.Acquire(ctx, 1)
+		go func(e T) {
+			defer sem.Release(1)
+			defer wg.Done()
+			result = operator(result, e)
+		}(element)
+	}
+	wg.Wait()
+	return result
+}
