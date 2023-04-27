@@ -73,3 +73,36 @@ func TestReduce(t *testing.T) {
 		})
 	}
 }
+
+func TestFilter(t *testing.T) {
+	type args[T any] struct {
+		ctx       context.Context
+		slice     []T
+		predicate model.Predicate[T]
+	}
+	type testCase[T any] struct {
+		name string
+		args args[T]
+		want []T
+	}
+	tests := []testCase[int]{
+		{
+			name: "valid case",
+			args: args[int]{
+				ctx:   ctx,
+				slice: []int{1, 2, 3, 4, 5},
+				predicate: func(i int) bool {
+					return i%2 == 0
+				},
+			},
+			want: []int{2, 4},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Filter(tt.args.ctx, tt.args.slice, tt.args.predicate); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Filter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
