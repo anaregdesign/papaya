@@ -11,7 +11,7 @@ type Topic[T any] struct {
 	subscriptions map[string]*Subscription[T]
 }
 
-func NewTopic[T any](name string, concurrency int64, interval time.Duration, ttl time.Duration) *Topic[T] {
+func NewTopic[T any](name string) *Topic[T] {
 	return &Topic[T]{
 		name:          name,
 		subscriptions: make(map[string]*Subscription[T]),
