@@ -5,13 +5,13 @@ import (
 	"github.com/anaregdesign/papaya/model"
 	"github.com/google/uuid"
 	"golang.org/x/sync/semaphore"
-	"log"
 	"sync"
 	"time"
 )
 
 type Subscription[T any] struct {
 	mu          sync.RWMutex
+	wg          sync.WaitGroup
 	name        string
 	topic       *Topic[T]
 	ch          chan string
@@ -30,7 +30,6 @@ func (s *Subscription[T]) Topic() *Topic[T] {
 }
 
 func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer[*Message[T]]) {
-	var wg sync.WaitGroup
 	sem := semaphore.NewWeighted(s.concurrency)
 	s.register()
 	go s.watch(ctx, s.interval, s.ttl)
@@ -39,29 +38,17 @@ func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer
 		select {
 		case id := <-s.ch:
 			message := s.messages[id]
-			err := s.do(ctx, &wg, sem, consumer, message)
-			if err != nil {
-				panic(err)
-			}
+			s.wg.Add(1)
+			sem.Acquire(ctx, 1)
+			go func(m *Message[T]) {
+				sem.Release(1)
+				s.wg.Done()
+				consumer(message)
+			}(message)
 
 		case <-ctx.Done():
+			s.wg.Wait()
 			s.unregister()
-			log.Printf("closing subscription: %s\n", s.Name())
-			cancelCtx := context.Background()
-			for {
-				select {
-				case id := <-s.ch:
-					message := s.messages[id]
-					err := s.do(cancelCtx, &wg, sem, consumer, message)
-					if err != nil {
-						panic(err)
-					}
-
-				default:
-					wg.Wait()
-					return
-				}
-			}
 		}
 	}
 }
@@ -83,14 +70,6 @@ func (s *Subscription[T]) newMessage(body T) *Message[T] {
 	}
 }
 
-func (s *Subscription[T]) publish(message *Message[T]) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.ch <- message.id
-	s.messages[message.id] = message
-}
-
 func (s *Subscription[T]) ack(message *Message[T]) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -103,24 +82,6 @@ func (s *Subscription[T]) nack(message *Message[T]) {
 
 func (s *Subscription[T]) remind(message *Message[T]) {
 	s.ch <- message.id
-}
-
-func (s *Subscription[T]) do(ctx context.Context, wg *sync.WaitGroup, sem *semaphore.Weighted, consumer func(*Message[T]), message *Message[T]) error {
-	wg.Add(1)
-	if err := sem.Acquire(ctx, 1); err == nil {
-		go func() {
-			defer wg.Done()
-			defer sem.Release(1)
-			defer message.touch()
-			consumer(message)
-		}()
-		return nil
-
-	} else {
-		s.remind(message)
-		wg.Done()
-		return err
-	}
 }
 
 func (s *Subscription[T]) salvage(interval time.Duration, ttl time.Duration) {
