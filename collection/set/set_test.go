@@ -1,7 +1,8 @@
-package collection
+package set
 
 import (
 	"fmt"
+	"github.com/anaregdesign/papaya/collection/slice"
 	"github.com/anaregdesign/papaya/model"
 	"reflect"
 	"testing"
@@ -403,7 +404,7 @@ func TestSet_Values(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.s.Values()
 			for _, v := range tt.want {
-				if !Contains(got, v) {
+				if !slice.Contains(got, v) {
 					t.Errorf("Values() = %v, don't contains %v", got, v)
 				}
 			}

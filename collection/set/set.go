@@ -1,4 +1,4 @@
-package collection
+package set
 
 import "github.com/anaregdesign/papaya/model"
 
