@@ -103,6 +103,7 @@ func (s *Subscription[T]) watch(ctx context.Context, interval time.Duration, ttl
 		case <-ticker.C:
 			s.salvage(interval, ttl)
 		case <-ctx.Done():
+			s.wg.Wait()
 			return
 		}
 	}
