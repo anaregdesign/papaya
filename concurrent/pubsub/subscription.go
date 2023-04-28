@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"github.com/anaregdesign/papaya/model"
 	"github.com/google/uuid"
 	"golang.org/x/sync/semaphore"
 	"log"
@@ -28,7 +29,7 @@ func (s *Subscription[T]) Topic() *Topic[T] {
 	return s.topic
 }
 
-func (s *Subscription[T]) Subscribe(ctx context.Context, consumer func(*Message[T])) {
+func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer[*Message[T]]) {
 	var wg sync.WaitGroup
 	sem := semaphore.NewWeighted(s.concurrency)
 	s.register()
@@ -39,7 +40,7 @@ func (s *Subscription[T]) Subscribe(ctx context.Context, consumer func(*Message[
 		case id := <-s.ch:
 			message := s.messages[id]
 			err := s.do(ctx, &wg, sem, consumer, message)
-			if err != nil && err != context.Canceled {
+			if err != nil {
 				panic(err)
 			}
 

@@ -9,18 +9,12 @@ type Topic[T any] struct {
 	mu            sync.RWMutex
 	name          string
 	subscriptions map[string]*Subscription[T]
-	concurrency   int64
-	interval      time.Duration
-	ttl           time.Duration
 }
 
 func NewTopic[T any](name string, concurrency int64, interval time.Duration, ttl time.Duration) *Topic[T] {
 	return &Topic[T]{
 		name:          name,
 		subscriptions: make(map[string]*Subscription[T]),
-		concurrency:   concurrency,
-		interval:      interval,
-		ttl:           ttl,
 	}
 }
 
@@ -39,7 +33,7 @@ func (t *Topic[T]) Publish(body T) {
 	}
 }
 
-func (t *Topic[T]) NewSubscription(name string) *Subscription[T] {
+func (t *Topic[T]) NewSubscription(name string, concurrency int64, interval time.Duration, ttl time.Duration) *Subscription[T] {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -49,9 +43,9 @@ func (t *Topic[T]) NewSubscription(name string) *Subscription[T] {
 			topic:       t,
 			ch:          make(chan string, 65536),
 			messages:    make(map[string]*Message[T]),
-			concurrency: t.concurrency,
-			interval:    t.interval,
-			ttl:         t.ttl,
+			concurrency: concurrency,
+			interval:    interval,
+			ttl:         ttl,
 		}
 	}
 	return t.subscriptions[name]
