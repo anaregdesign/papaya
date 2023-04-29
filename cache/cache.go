@@ -8,11 +8,11 @@ import (
 
 type volatile[T any] struct {
 	value T
-	ttl   int64
+	ttl   time.Time
 }
 
 func (v *volatile[T]) IsExpired() bool {
-	return v.ttl <= time.Now().Unix()
+	return v.ttl.Before(time.Now())
 }
 
 type Cache[S comparable, T any] struct {
@@ -51,7 +51,7 @@ func (c *Cache[S, T]) Set(key S, value T) {
 
 	c.cache[key] = volatile[T]{
 		value: value,
-		ttl:   time.Now().Add(c.defaultTTL).Unix(),
+		ttl:   time.Now().Add(c.defaultTTL),
 	}
 }
 
@@ -61,7 +61,7 @@ func (c *Cache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
 
 	c.cache[key] = volatile[T]{
 		value: value,
-		ttl:   time.Now().Add(ttl).Unix(),
+		ttl:   time.Now().Add(ttl),
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var example = map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Minute).Unix()}}
+var example = map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Minute)}}
 
 func TestCache_Clear(t *testing.T) {
 	type testCase[S comparable, T any] struct {
@@ -93,7 +93,7 @@ func TestCache_Flush(t *testing.T) {
 			name: "valid case",
 			c: Cache[string, int]{
 				defaultTTL: time.Second,
-				cache:      map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Second).Unix()}},
+				cache:      map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Second)}},
 			},
 		},
 	}
@@ -216,7 +216,7 @@ func Test_volatile_IsExpired(t *testing.T) {
 			name: "expired case",
 			v: volatile[int]{
 				value: 1,
-				ttl:   time.Now().Add(-time.Second).Unix(),
+				ttl:   time.Now().Add(-time.Second),
 			},
 			want: true,
 		},
@@ -224,7 +224,7 @@ func Test_volatile_IsExpired(t *testing.T) {
 			name: "not expired case",
 			v: volatile[int]{
 				value: 1,
-				ttl:   time.Now().Add(time.Second).Unix(),
+				ttl:   time.Now().Add(time.Second),
 			},
 			want: false,
 		},
