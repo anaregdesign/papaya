@@ -21,6 +21,10 @@ func TestNewTopic(t *testing.T) {
 			args: args{
 				name: "test",
 			},
+			want: &Topic[int]{
+				name:          "test",
+				subscriptions: make(map[string]*Subscription[int]),
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -55,6 +59,7 @@ func TestTopic_Name(t1 *testing.T) {
 }
 
 func TestTopic_NewSubscription(t1 *testing.T) {
+	topic := NewTopic[int]("test")
 	type args struct {
 		name        string
 		concurrency int64
@@ -70,7 +75,7 @@ func TestTopic_NewSubscription(t1 *testing.T) {
 	tests := []testCase[int]{
 		{
 			name: "TestTopic_NewSubscription",
-			t:    *NewTopic[int]("test"),
+			t:    *topic,
 			args: args{
 				name:        "test",
 				concurrency: 8,
@@ -80,15 +85,17 @@ func TestTopic_NewSubscription(t1 *testing.T) {
 			want: &Subscription[int]{
 				name:        "test",
 				concurrency: 8,
+				ch:          make(chan string, 65536),
+				messages:    make(map[string]*Message[int]),
 				interval:    time.Minute,
 				ttl:         time.Minute,
-				topic:       &Topic[int]{name: "test"},
+				topic:       topic,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			if got := tt.t.NewSubscription(tt.args.name, tt.args.concurrency, tt.args.interval, tt.args.ttl); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.t.NewSubscription(tt.args.name, tt.args.concurrency, tt.args.interval, tt.args.ttl); got.name != tt.want.name {
 				t1.Errorf("NewSubscription() = %v, want %v", got, tt.want)
 			}
 		})

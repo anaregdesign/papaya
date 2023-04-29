@@ -186,6 +186,7 @@ func TestSubscription_publish(t *testing.T) {
 			name: "TestSubscription_publish",
 			s: Subscription[int]{
 				name:     "test",
+				ch:       make(chan string, 10),
 				messages: map[string]*Message[int]{},
 			},
 			args: args[int]{message: &Message[int]{id: "uuid", body: 1}},
@@ -207,8 +208,11 @@ func TestSubscription_register(t *testing.T) {
 		{
 			name: "TestSubscription_register",
 			s: Subscription[int]{
-				name:  "test",
-				topic: &Topic[int]{name: "test"},
+				name: "test",
+				topic: &Topic[int]{
+					name:          "test",
+					subscriptions: map[string]*Subscription[int]{},
+				},
 			},
 		},
 	}
@@ -233,7 +237,7 @@ func TestSubscription_remind(t *testing.T) {
 			name: "TestSubscription_remind",
 			s: Subscription[int]{
 				name: "test",
-				ch:   make(chan string),
+				ch:   make(chan string, 10),
 				messages: map[string]*Message[int]{
 					"uuid": {id: "uuid", body: 1},
 				},
@@ -263,6 +267,7 @@ func TestSubscription_salvage(t *testing.T) {
 			name: "TestSubscription_salvage",
 			s: Subscription[int]{
 				name: "test",
+				ch:   make(chan string, 10),
 				messages: map[string]*Message[int]{
 					"uuid": {id: "uuid", body: 1},
 				},
