@@ -41,8 +41,8 @@ func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer
 			s.wg.Add(1)
 			sem.Acquire(ctx, 1)
 			go func(m *Message[T]) {
-				sem.Release(1)
-				s.wg.Done()
+				defer sem.Release(1)
+				defer s.wg.Done()
 				consumer(message)
 			}(message)
 
