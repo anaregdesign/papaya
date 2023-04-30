@@ -237,3 +237,33 @@ func Test_volatile_IsExpired(t *testing.T) {
 		})
 	}
 }
+
+func TestCache_Has(t *testing.T) {
+	type args[S comparable] struct {
+		key S
+	}
+	type testCase[S comparable, T any] struct {
+		name string
+		c    Cache[S, T]
+		args args[S]
+		want bool
+	}
+	tests := []testCase[string, int]{
+		{
+			name: "hit case",
+			c: Cache[string, int]{
+				defaultTTL: time.Second,
+				cache:      example,
+			},
+			args: args[string]{key: "a"},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.c.Has(tt.args.key); got != tt.want {
+				t.Errorf("Has() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

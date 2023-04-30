@@ -74,6 +74,12 @@ func (c *Cache[S, T]) Delete(key S) {
 		delete(c.cache, key)
 	}
 }
+
+func (c *Cache[S, T]) Has(key S) bool {
+
+	_, ok := c.Get(key)
+	return ok
+}
 func (c *Cache[S, T]) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
