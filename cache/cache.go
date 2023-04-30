@@ -26,16 +26,17 @@ func NewCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration
 		defaultTTL: defaultTTL,
 		cache:      make(map[S]volatile[T]),
 	}
-	go cache.FlushInterval(ctx, time.Minute)
+	go cache.watch(ctx, time.Minute)
 	return cache
 }
 
 func (c *Cache[S, T]) Get(key S) (T, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if v, ok := c.cache[key]; ok {
 		if v.IsExpired() {
+			go c.Delete(key)
 			var noop T
 			return noop, false
 		}
@@ -46,8 +47,8 @@ func (c *Cache[S, T]) Get(key S) (T, bool) {
 }
 
 func (c *Cache[S, T]) Set(key S, value T) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	c.cache[key] = volatile[T]{
 		value: value,
@@ -56,8 +57,8 @@ func (c *Cache[S, T]) Set(key S, value T) {
 }
 
 func (c *Cache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	c.cache[key] = volatile[T]{
 		value: value,
@@ -66,30 +67,30 @@ func (c *Cache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
 }
 
 func (c *Cache[S, T]) Delete(key S) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	if _, ok := c.cache[key]; ok {
 		delete(c.cache, key)
 	}
 }
 func (c *Cache[S, T]) Clear() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	c.cache = make(map[S]volatile[T])
 }
 
 func (c *Cache[S, T]) Count() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	return len(c.cache)
 }
 
 func (c *Cache[S, T]) Flush() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	for k, v := range c.cache {
 		if v.IsExpired() {
@@ -98,7 +99,7 @@ func (c *Cache[S, T]) Flush() {
 	}
 }
 
-func (c *Cache[S, T]) FlushInterval(ctx context.Context, interval time.Duration) {
+func (c *Cache[S, T]) watch(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {

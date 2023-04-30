@@ -16,7 +16,7 @@ type Subscription[T any] struct {
 	topic       *Topic[T]
 	ch          chan string
 	messages    map[string]*Message[T]
-	concurrency int64
+	concurrency int
 	interval    time.Duration
 	ttl         time.Duration
 }
@@ -30,16 +30,20 @@ func (s *Subscription[T]) Topic() *Topic[T] {
 }
 
 func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer[*Message[T]]) {
-	sem := semaphore.NewWeighted(s.concurrency)
+	sem := semaphore.NewWeighted(int64(s.concurrency))
 	s.register()
 	go s.watch(ctx, s.interval, s.ttl)
 
 	for {
 		select {
 		case id := <-s.ch:
-			message := s.messages[id]
+			message := s.message(id)
+
 			s.wg.Add(1)
-			sem.Acquire(ctx, 1)
+			if err := sem.Acquire(ctx, 1); err != nil {
+				s.wg.Done()
+				continue
+			}
 			go func(m *Message[T]) {
 				defer sem.Release(1)
 				defer s.wg.Done()
@@ -49,6 +53,7 @@ func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer
 		case <-ctx.Done():
 			s.wg.Wait()
 			s.unregister()
+			return
 		}
 	}
 }
@@ -70,17 +75,24 @@ func (s *Subscription[T]) newMessage(body T) *Message[T] {
 	}
 }
 
-func (s *Subscription[T]) publish(message *Message[T]) {
+func (s *Subscription[T]) message(id string) *Message[T] {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	return s.messages[id]
+}
+
+func (s *Subscription[T]) publish(message *Message[T]) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	s.ch <- message.id
 	s.messages[message.id] = message
 }
 
 func (s *Subscription[T]) ack(message *Message[T]) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	delete(s.messages, message.id)
 }
