@@ -49,8 +49,8 @@ func Test_weightValue_expired(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := weightValue{
-				value: tt.fields.value,
-				ttl:   tt.fields.ttl,
+				value:      tt.fields.value,
+				expiration: tt.fields.ttl,
 			}
 			if got := w.expired(); got != tt.want {
 				t.Errorf("expired() = %v, want %v", got, tt.want)
@@ -107,12 +107,12 @@ func Test_weight_value(t *testing.T) {
 			fields: fields{
 				values: []weightValue{
 					{
-						value: 1,
-						ttl:   time.Now().Add(time.Minute),
+						value:      1,
+						expiration: time.Now().Add(time.Minute),
 					},
 					{
-						value: 1,
-						ttl:   time.Now().Add(-time.Minute),
+						value:      1,
+						expiration: time.Now().Add(-time.Minute),
 					},
 				},
 			},
@@ -145,8 +145,8 @@ func Test_weight_isZero(t *testing.T) {
 			fields: fields{
 				values: []weightValue{
 					{
-						value: 1,
-						ttl:   time.Now().Add(time.Minute),
+						value:      1,
+						expiration: time.Now().Add(time.Minute),
 					},
 				},
 			},
@@ -157,8 +157,8 @@ func Test_weight_isZero(t *testing.T) {
 			fields: fields{
 				values: []weightValue{
 					{
-						value: 1,
-						ttl:   time.Now().Add(-time.Minute),
+						value:      1,
+						expiration: time.Now().Add(-time.Minute),
 					},
 				},
 			},

@@ -3,12 +3,12 @@ package graph
 import "time"
 
 type weightValue struct {
-	value float64
-	ttl   time.Time
+	value      float64
+	expiration time.Time
 }
 
 func (w weightValue) expired() bool {
-	return time.Now().After(w.ttl)
+	return time.Now().After(w.expiration)
 }
 
 type weight struct {
@@ -32,8 +32,8 @@ func (w *weight) value() float64 {
 
 func (w *weight) add(value float64, ttl time.Duration) {
 	w.values = append(w.values, weightValue{
-		value: value,
-		ttl:   time.Now().Add(ttl),
+		value:      value,
+		expiration: time.Now().Add(ttl),
 	})
 }
 
