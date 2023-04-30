@@ -22,7 +22,7 @@ func (s *Set[T]) Remove(value T) {
 	delete(s.set, value)
 }
 
-func (s *Set[T]) Contains(value T) bool {
+func (s *Set[T]) Has(value T) bool {
 	_, ok := s.set[value]
 	return ok
 }

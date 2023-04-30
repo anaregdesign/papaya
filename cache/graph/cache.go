@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"github.com/anaregdesign/papaya/cache"
+	"github.com/anaregdesign/papaya/collection/set"
 	"sync"
 	"time"
 )
@@ -24,57 +25,93 @@ func NewGraphCache[S comparable, T any](ctx context.Context, defaultTTL time.Dur
 	return g
 }
 
-func (g *GraphCache[S, T]) GetVertex(key S) (T, bool) {
-	return g.vertices.Get(key)
+func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
+	return c.vertices.Get(key)
 }
 
-func (g *GraphCache[S, T]) getWeight(tail, head S) float64 {
-	return g.edges.get(tail, head)
+func (c *GraphCache[S, T]) getWeight(tail, head S) float64 {
+	return c.edges.get(tail, head)
 }
 
-func (g *GraphCache[S, T]) AddVertexWithTTL(key S, value T, ttl time.Duration) {
-	g.vertices.SetWithTTL(key, value, ttl)
+func (c *GraphCache[S, T]) AddVertexWithTTL(key S, value T, ttl time.Duration) {
+	c.vertices.SetWithTTL(key, value, ttl)
 }
 
-func (g *GraphCache[S, T]) AddVertex(key S, value T) {
-	g.AddVertexWithTTL(key, value, g.defaultTTL)
+func (c *GraphCache[S, T]) AddVertex(key S, value T) {
+	c.AddVertexWithTTL(key, value, c.defaultTTL)
 }
 
-func (g *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
-	g.edges.setWithTTL(tail, head, w, ttl)
+func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
+	c.edges.setWithTTL(tail, head, w, ttl)
 }
 
-func (g *GraphCache[S, T]) AddEdge(tail, head S, w float64) {
-	g.AddEdgeWithTTL(tail, head, w, g.defaultTTL)
+func (c *GraphCache[S, T]) AddEdge(tail, head S, w float64) {
+	c.AddEdgeWithTTL(tail, head, w, c.defaultTTL)
 }
 
-func (g *GraphCache[S, T]) flush() {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
+func (c *GraphCache[S, T]) flush() {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
-	for tail, heads := range g.edges.cache {
-		if !g.vertices.Has(tail) {
-			g.mu.Lock()
-			delete(g.edges.cache, tail)
-			g.mu.Unlock()
+	for tail, heads := range c.edges.cache {
+		if !c.vertices.Has(tail) {
+			c.mu.Lock()
+			delete(c.edges.cache, tail)
+			c.mu.Unlock()
 			continue
 		}
 		for head := range heads {
-			if !g.vertices.Has(head) {
-				g.edges.delete(tail, head)
+			if !c.vertices.Has(head) {
+				c.edges.delete(tail, head)
 			}
 		}
 	}
 }
 
-func (g *GraphCache[S, T]) watch(ctx context.Context, interval time.Duration) {
+func (c *GraphCache[S, T]) Neighbor(seed S, step int) Graph[S, T] {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	g := Graph[S, T]{
+		Vertices: make(map[S]T),
+		Edges:    make(map[S]map[S]float64),
+	}
+
+	if v, ok := c.vertices.Get(seed); !ok {
+		return g
+	} else {
+		g.Vertices[seed] = v
+	}
+
+	seen := set.NewSet[S]()
+	for i := 0; i <= step; i++ {
+		for tail, _ := range g.Vertices {
+			if seen.Has(tail) {
+				continue
+			}
+
+			for head, w := range c.edges.cache[tail] {
+				if v, ok := c.vertices.Get(head); ok {
+					g.Vertices[head] = v
+				}
+				if _, ok := g.Edges[tail]; !ok {
+					g.Edges[tail] = make(map[S]float64)
+				}
+				g.Edges[tail][head] = w.value()
+			}
+			seen.Add(tail)
+		}
+	}
+	return g
+}
+
+func (c *GraphCache[S, T]) watch(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			g.flush()
+			c.flush()
 
 		case <-ctx.Done():
 			return
