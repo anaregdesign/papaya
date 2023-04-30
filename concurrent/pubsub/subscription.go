@@ -76,23 +76,23 @@ func (s *Subscription[T]) newMessage(body T) *Message[T] {
 }
 
 func (s *Subscription[T]) message(id string) *Message[T] {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	return s.messages[id]
 }
 
 func (s *Subscription[T]) publish(message *Message[T]) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	s.ch <- message.id
 	s.messages[message.id] = message
 }
 
 func (s *Subscription[T]) ack(message *Message[T]) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	delete(s.messages, message.id)
 }
