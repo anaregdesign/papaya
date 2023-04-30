@@ -17,13 +17,13 @@ func TestGraph_AddEdge(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name string
-		g    Graph[S, T]
+		g    GraphCache[S, T]
 		args args[S]
 	}
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_AddEdge",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				edges: e,
 			},
 			args: args[string]{
@@ -50,13 +50,13 @@ func TestGraph_AddEdgeWithTTL(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name string
-		g    Graph[S, T]
+		g    GraphCache[S, T]
 		args args[S]
 	}
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_AddEdgeWithTTL",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				edges: e,
 			},
 			args: args[string]{
@@ -80,13 +80,13 @@ func TestGraph_AddVertex(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name string
-		g    Graph[S, T]
+		g    GraphCache[S, T]
 		args args[S, T]
 	}
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_AddVertex",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value"},
@@ -107,13 +107,13 @@ func TestGraph_AddVertexWithTTL(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name string
-		g    Graph[S, T]
+		g    GraphCache[S, T]
 		args args[S, T]
 	}
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_AddVertexWithTTL",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value", ttl: time.Minute},
@@ -135,7 +135,7 @@ func TestGraph_GetVertex(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name  string
-		g     Graph[S, T]
+		g     GraphCache[S, T]
 		args  args[S]
 		want  T
 		want1 bool
@@ -143,7 +143,7 @@ func TestGraph_GetVertex(t *testing.T) {
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_GetVertex",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				vertices: v,
 			},
 			args:  args[string]{key: "key"},
@@ -173,14 +173,14 @@ func TestGraph_getWeight(t *testing.T) {
 	}
 	type testCase[S comparable, T any] struct {
 		name string
-		g    Graph[S, T]
+		g    GraphCache[S, T]
 		args args[S]
 		want float64
 	}
 	tests := []testCase[string, string]{
 		{
 			name: "TestGraph_getWeight",
-			g: Graph[string, string]{
+			g: GraphCache[string, string]{
 				edges: e,
 			},
 			args: args[string]{tail: "tail", head: "head"},
