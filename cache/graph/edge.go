@@ -71,6 +71,9 @@ func newEdgeCache[S comparable](ctx context.Context, defaultTTL time.Duration) *
 }
 
 func (c *edgeCache[S]) get(tail, head S) float64 {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	if _, ok := c.cache[tail]; !ok {
 		return 0
 	}
@@ -88,6 +91,9 @@ func (c *edgeCache[S]) get(tail, head S) float64 {
 }
 
 func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if _, ok := c.cache[tail]; !ok {
 		c.cache[tail] = make(map[S]*weight)
 	}
@@ -104,6 +110,9 @@ func (c *edgeCache[S]) set(tail, head S, w float64) {
 }
 
 func (c *edgeCache[S]) delete(tail, head S) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if _, ok := c.cache[tail]; !ok {
 		return
 	}
@@ -119,6 +128,9 @@ func (c *edgeCache[S]) delete(tail, head S) {
 }
 
 func (c *edgeCache[S]) flush() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for tail, heads := range c.cache {
 		for head, w := range heads {
 			if w.isZero() {
