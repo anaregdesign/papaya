@@ -62,7 +62,7 @@ func TestTopic_NewSubscription(t1 *testing.T) {
 	topic := NewTopic[int]("test")
 	type args struct {
 		name        string
-		concurrency int64
+		concurrency int
 		interval    time.Duration
 		ttl         time.Duration
 	}
