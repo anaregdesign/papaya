@@ -76,13 +76,10 @@ func (c *GraphCache[S, T]) flush() {
 	}
 }
 
-func (c *GraphCache[S, T]) Neighbor(seed S, step int) Graph[S, T] {
+func (c *GraphCache[S, T]) Neighbor(seed S, step int) *Graph[S, T] {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	g := Graph[S, T]{
-		Vertices: make(map[S]T),
-		Edges:    make(map[S]map[S]float64),
-	}
+	g := NewGraph[S, T]()
 
 	if v, ok := c.vertices.Get(seed); !ok {
 		return g
