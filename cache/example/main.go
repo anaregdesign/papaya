@@ -16,7 +16,7 @@ func main() {
 
 	// Get a value
 	if value, ok := c.Get("key"); ok {
-		log.Printf("Value: %v", value)
+		log.Printf("value: %v", value)
 	}
 
 	// Wait for the cache to expire
