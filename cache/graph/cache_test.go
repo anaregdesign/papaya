@@ -9,6 +9,7 @@ import (
 )
 
 func TestGraph_AddEdge(t *testing.T) {
+	v := cache.NewCache[string, string](context.Background(), time.Minute)
 	e := newEdgeCache[string](context.Background(), time.Minute)
 	type args[S comparable] struct {
 		tail S
@@ -24,7 +25,8 @@ func TestGraph_AddEdge(t *testing.T) {
 		{
 			name: "TestGraph_AddEdge",
 			g: GraphCache[string, string]{
-				edges: e,
+				vertices: v,
+				edges:    e,
 			},
 			args: args[string]{
 				tail: "tail",
@@ -41,6 +43,7 @@ func TestGraph_AddEdge(t *testing.T) {
 }
 
 func TestGraph_AddEdgeWithTTL(t *testing.T) {
+	v := cache.NewCache[string, string](context.Background(), time.Minute)
 	e := newEdgeCache[string](context.Background(), time.Minute)
 	type args[S comparable] struct {
 		tail S
@@ -57,7 +60,8 @@ func TestGraph_AddEdgeWithTTL(t *testing.T) {
 		{
 			name: "TestGraph_AddEdgeWithTTL",
 			g: GraphCache[string, string]{
-				edges: e,
+				vertices: v,
+				edges:    e,
 			},
 			args: args[string]{
 				tail: "tail",
