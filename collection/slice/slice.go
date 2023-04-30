@@ -2,13 +2,13 @@ package slice
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/model"
+	"github.com/anaregdesign/papaya/model/function"
 	"golang.org/x/sync/semaphore"
 	"runtime"
 	"sync"
 )
 
-func ForEach[T any](ctx context.Context, slice []T, consumer model.Consumer[T]) {
+func ForEach[T any](ctx context.Context, slice []T, consumer function.Consumer[T]) {
 	var wg sync.WaitGroup
 	sem := semaphore.NewWeighted(int64(runtime.NumCPU()))
 	for _, element := range slice {
@@ -23,7 +23,7 @@ func ForEach[T any](ctx context.Context, slice []T, consumer model.Consumer[T]) 
 	wg.Wait()
 }
 
-func Map[S any, T any](ctx context.Context, slice []S, function model.Function[S, T]) []T {
+func Map[S any, T any](ctx context.Context, slice []S, function function.Function[S, T]) []T {
 	var wg sync.WaitGroup
 	sem := semaphore.NewWeighted(int64(runtime.NumCPU()))
 	result := make([]T, len(slice))
@@ -40,7 +40,7 @@ func Map[S any, T any](ctx context.Context, slice []S, function model.Function[S
 	return result
 }
 
-func Reduce[T any](ctx context.Context, slice []T, operator model.Operator[T]) T {
+func Reduce[T any](ctx context.Context, slice []T, operator function.Operator[T]) T {
 	result := slice[0]
 	for _, element := range slice[1:] {
 		result = operator(result, element)
@@ -48,7 +48,7 @@ func Reduce[T any](ctx context.Context, slice []T, operator model.Operator[T]) T
 	return result
 }
 
-func Filter[T any](ctx context.Context, slice []T, predicate model.Predicate[T]) []T {
+func Filter[T any](ctx context.Context, slice []T, predicate function.Predicate[T]) []T {
 	result := make([]T, 0)
 	for _, element := range slice {
 		if predicate(element) {

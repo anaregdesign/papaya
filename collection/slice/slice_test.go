@@ -2,7 +2,7 @@ package slice
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/model"
+	"github.com/anaregdesign/papaya/model/function"
 	"reflect"
 	"testing"
 )
@@ -47,7 +47,7 @@ func TestReduce(t *testing.T) {
 	type args[T any] struct {
 		ctx      context.Context
 		slice    []T
-		operator model.Operator[T]
+		operator function.Operator[T]
 	}
 	type testCase[T any] struct {
 		name string
@@ -78,7 +78,7 @@ func TestFilter(t *testing.T) {
 	type args[T any] struct {
 		ctx       context.Context
 		slice     []T
-		predicate model.Predicate[T]
+		predicate function.Predicate[T]
 	}
 	type testCase[T any] struct {
 		name string
