@@ -9,6 +9,7 @@ import (
 )
 
 func TestGraph_AddEdge(t *testing.T) {
+	e := newEdgeCache[string](context.Background(), time.Minute)
 	type args[S comparable] struct {
 		tail S
 		head S
@@ -23,7 +24,7 @@ func TestGraph_AddEdge(t *testing.T) {
 		{
 			name: "TestGraph_AddEdge",
 			g: Graph[string, string]{
-				edges: make(map[string]map[string]*weight),
+				edges: e,
 			},
 			args: args[string]{
 				tail: "tail",
@@ -40,6 +41,7 @@ func TestGraph_AddEdge(t *testing.T) {
 }
 
 func TestGraph_AddEdgeWithTTL(t *testing.T) {
+	e := newEdgeCache[string](context.Background(), time.Minute)
 	type args[S comparable] struct {
 		tail S
 		head S
@@ -55,7 +57,7 @@ func TestGraph_AddEdgeWithTTL(t *testing.T) {
 		{
 			name: "TestGraph_AddEdgeWithTTL",
 			g: Graph[string, string]{
-				edges: make(map[string]map[string]*weight),
+				edges: e,
 			},
 			args: args[string]{
 				tail: "tail",
@@ -163,6 +165,8 @@ func TestGraph_GetVertex(t *testing.T) {
 }
 
 func TestGraph_getWeight(t *testing.T) {
+	e := newEdgeCache[string](context.Background(), time.Minute)
+
 	type args[S comparable] struct {
 		tail S
 		head S
@@ -177,7 +181,7 @@ func TestGraph_getWeight(t *testing.T) {
 		{
 			name: "TestGraph_getWeight",
 			g: Graph[string, string]{
-				edges: map[string]map[string]*weight{},
+				edges: e,
 			},
 			args: args[string]{tail: "tail", head: "head"},
 			want: 0,
