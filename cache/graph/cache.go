@@ -42,6 +42,14 @@ func (c *GraphCache[S, T]) AddVertex(key S, value T) {
 }
 
 func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
+	if !c.vertices.Has(tail) {
+		var noop T
+		c.AddVertexWithTTL(tail, noop, ttl)
+	}
+	if !c.vertices.Has(head) {
+		var noop T
+		c.AddVertexWithTTL(head, noop, ttl)
+	}
 	c.edges.setWithTTL(tail, head, w, ttl)
 }
 
@@ -82,9 +90,11 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int) Graph[S, T] {
 		g.Vertices[seed] = v
 	}
 
+	targets := set.NewSet[S]()
+	targets.Add(seed)
 	seen := set.NewSet[S]()
-	for i := 0; i <= step; i++ {
-		for tail, _ := range g.Vertices {
+	for i := 0; i < step; i++ {
+		for _, tail := range targets.Values() {
 			if seen.Has(tail) {
 				continue
 			}
@@ -98,7 +108,11 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int) Graph[S, T] {
 				}
 				g.Edges[tail][head] = w.value()
 			}
+
 			seen.Add(tail)
+		}
+		for tail, _ := range g.Vertices {
+			targets.Add(tail)
 		}
 	}
 	return g
