@@ -16,7 +16,7 @@ type Subscription[T any] struct {
 	topic       *Topic[T]
 	ch          chan string
 	messages    map[string]*Message[T]
-	concurrency int64
+	concurrency int
 	interval    time.Duration
 	ttl         time.Duration
 }
@@ -30,7 +30,7 @@ func (s *Subscription[T]) Topic() *Topic[T] {
 }
 
 func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer[*Message[T]]) {
-	sem := semaphore.NewWeighted(s.concurrency)
+	sem := semaphore.NewWeighted(int64(s.concurrency))
 	s.register()
 	go s.watch(ctx, s.interval, s.ttl)
 

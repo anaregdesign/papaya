@@ -33,7 +33,7 @@ func (t *Topic[T]) Publish(body T) {
 	}
 }
 
-func (t *Topic[T]) NewSubscription(name string, concurrency int64, interval time.Duration, ttl time.Duration) *Subscription[T] {
+func (t *Topic[T]) NewSubscription(name string, concurrency int, interval time.Duration, ttl time.Duration) *Subscription[T] {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
