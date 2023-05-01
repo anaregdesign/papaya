@@ -5,6 +5,7 @@ import (
 	"github.com/anaregdesign/papaya/cache"
 	"github.com/anaregdesign/papaya/collection/pq"
 	"github.com/anaregdesign/papaya/collection/set"
+	"math"
 	"sync"
 	"time"
 )
@@ -126,6 +127,20 @@ func (c *GraphCache[S, T]) NeighborTFiDF(seed S, step int, top int) *Graph[S, T]
 	for tail, heads := range g.Edges {
 		for head, w := range heads {
 			g.Edges[tail][head] = w / float64(c.edges.df[head])
+		}
+		g.Edges[tail] = pq.FilterMap(g.Edges[tail], top)
+	}
+	return g
+}
+
+func (c *GraphCache[S, T]) NeighborTFiDFLog(seed S, step int, top int) *Graph[S, T] {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	g := c.Neighbor(seed, step)
+	for tail, heads := range g.Edges {
+		for head, w := range heads {
+			g.Edges[tail][head] = w / math.Log2(float64(1+c.edges.df[head]))
 		}
 		g.Edges[tail] = pq.FilterMap(g.Edges[tail], top)
 	}
