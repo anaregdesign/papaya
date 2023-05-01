@@ -27,7 +27,7 @@ func main() {
 	go sub.Subscribe(ctx, func(x *pubsub.Message[int]) {
 		// Simulate some work
 		time.Sleep(1 * time.Second)
-		log.Printf("Value: %v", x.Body())
+		log.Printf("value: %v", x.Body())
 
 		// Acknowledge the message
 		x.Ack()

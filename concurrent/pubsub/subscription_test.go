@@ -2,7 +2,7 @@ package pubsub
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/model"
+	"github.com/anaregdesign/papaya/model/function"
 	"reflect"
 	"testing"
 	"time"
@@ -38,7 +38,7 @@ func TestSubscription_Subscribe(t *testing.T) {
 	sub := topic.NewSubscription("test", 1, time.Minute, time.Minute)
 	type args[T any] struct {
 		ctx      context.Context
-		consumer model.Consumer[*Message[int]]
+		consumer function.Consumer[*Message[int]]
 	}
 	type testCase[T any] struct {
 		name string

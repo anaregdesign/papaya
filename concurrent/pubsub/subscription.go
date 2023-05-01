@@ -2,7 +2,7 @@ package pubsub
 
 import (
 	"context"
-	"github.com/anaregdesign/papaya/model"
+	"github.com/anaregdesign/papaya/model/function"
 	"github.com/google/uuid"
 	"golang.org/x/sync/semaphore"
 	"sync"
@@ -29,7 +29,7 @@ func (s *Subscription[T]) Topic() *Topic[T] {
 	return s.topic
 }
 
-func (s *Subscription[T]) Subscribe(ctx context.Context, consumer model.Consumer[*Message[T]]) {
+func (s *Subscription[T]) Subscribe(ctx context.Context, consumer function.Consumer[*Message[T]]) {
 	sem := semaphore.NewWeighted(int64(s.concurrency))
 	s.register()
 	go s.watch(ctx, s.interval, s.ttl)

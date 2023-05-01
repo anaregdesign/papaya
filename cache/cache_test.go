@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var example = map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Minute)}}
+var example = map[string]volatile[int]{"a": volatile[int]{value: 1, expiration: time.Now().Add(time.Minute)}}
 
 func TestCache_Clear(t *testing.T) {
 	type testCase[S comparable, T any] struct {
@@ -93,7 +93,7 @@ func TestCache_Flush(t *testing.T) {
 			name: "valid case",
 			c: Cache[string, int]{
 				defaultTTL: time.Second,
-				cache:      map[string]volatile[int]{"a": volatile[int]{value: 1, ttl: time.Now().Add(time.Second)}},
+				cache:      map[string]volatile[int]{"a": volatile[int]{value: 1, expiration: time.Now().Add(time.Second)}},
 			},
 		},
 	}
@@ -215,16 +215,16 @@ func Test_volatile_IsExpired(t *testing.T) {
 		{
 			name: "expired case",
 			v: volatile[int]{
-				value: 1,
-				ttl:   time.Now().Add(-time.Second),
+				value:      1,
+				expiration: time.Now().Add(-time.Second),
 			},
 			want: true,
 		},
 		{
 			name: "not expired case",
 			v: volatile[int]{
-				value: 1,
-				ttl:   time.Now().Add(time.Second),
+				value:      1,
+				expiration: time.Now().Add(time.Second),
 			},
 			want: false,
 		},
@@ -233,6 +233,36 @@ func Test_volatile_IsExpired(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.v.IsExpired(); got != tt.want {
 				t.Errorf("IsExpired() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCache_Has(t *testing.T) {
+	type args[S comparable] struct {
+		key S
+	}
+	type testCase[S comparable, T any] struct {
+		name string
+		c    Cache[S, T]
+		args args[S]
+		want bool
+	}
+	tests := []testCase[string, int]{
+		{
+			name: "hit case",
+			c: Cache[string, int]{
+				defaultTTL: time.Second,
+				cache:      example,
+			},
+			args: args[string]{key: "a"},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.c.Has(tt.args.key); got != tt.want {
+				t.Errorf("Has() = %v, want %v", got, tt.want)
 			}
 		})
 	}

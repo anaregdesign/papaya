@@ -1,4 +1,4 @@
-package model
+package function
 
 type Consumer[T any] func(T)
 type Supplier[T any] func() T

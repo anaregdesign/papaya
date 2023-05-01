@@ -3,7 +3,7 @@ package set
 import (
 	"fmt"
 	"github.com/anaregdesign/papaya/collection/slice"
-	"github.com/anaregdesign/papaya/model"
+	"github.com/anaregdesign/papaya/model/function"
 	"reflect"
 	"testing"
 )
@@ -57,7 +57,7 @@ func TestSet_Add(t *testing.T) {
 
 func TestSet_AllMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate model.Predicate[T]
+		predicate function.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -92,7 +92,7 @@ func TestSet_AllMatch(t *testing.T) {
 
 func TestSet_AnyMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate model.Predicate[T]
+		predicate function.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -179,8 +179,8 @@ func TestSet_Contains(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.s.Contains(tt.args.value); got != tt.want {
-				t.Errorf("Contains() = %v, want %v", got, tt.want)
+			if got := tt.s.Has(tt.args.value); got != tt.want {
+				t.Errorf("Has() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -188,7 +188,7 @@ func TestSet_Contains(t *testing.T) {
 
 func TestSet_Filter(t *testing.T) {
 	type args[T comparable] struct {
-		predicate model.Predicate[T]
+		predicate function.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -219,7 +219,7 @@ func TestSet_Filter(t *testing.T) {
 
 func TestSet_ForEach(t *testing.T) {
 	type args[T comparable] struct {
-		consumer model.Consumer[T]
+		consumer function.Consumer[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -250,7 +250,7 @@ func TestSet_ForEach(t *testing.T) {
 
 func TestSet_NoneMatch(t *testing.T) {
 	type args[T comparable] struct {
-		predicate model.Predicate[T]
+		predicate function.Predicate[T]
 	}
 	type testCase[T comparable] struct {
 		name string
@@ -285,7 +285,7 @@ func TestSet_NoneMatch(t *testing.T) {
 
 func TestSet_Reduce(t *testing.T) {
 	type args[T comparable] struct {
-		operator model.Operator[T]
+		operator function.Operator[T]
 	}
 	type testCase[T comparable] struct {
 		name string
