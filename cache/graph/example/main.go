@@ -17,7 +17,7 @@ func main() {
 	c.AddEdge("c", "e", 1)
 	c.AddEdge("c", "b", 1)
 
-	g := c.NeighborTFiDF("a", 5)
+	g := c.NeighborTFiDF("a", 5, 5)
 
 	if jsonText, err := json.MarshalIndent(g, "", "\t"); err == nil {
 		println(string(jsonText))

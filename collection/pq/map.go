@@ -1,8 +1,14 @@
 package pq
 
-import "container/heap"
+import (
+	"container/heap"
+)
 
 func FilterMap[S comparable, T Number](m map[S]T, top int) map[S]T {
+	if len(m) <= top {
+		return m
+	}
+
 	pq := make(PriorityQueue[S, T], len(m))
 
 	i := 0
