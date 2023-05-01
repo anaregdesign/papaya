@@ -77,8 +77,8 @@ func (c *GraphCache[S, T]) flush() {
 }
 
 func (c *GraphCache[S, T]) Neighbor(seed S, step int) *Graph[S, T] {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	g := NewGraph[S, T]()
 
 	if v, ok := c.vertices.Get(seed); !ok {
@@ -100,6 +100,7 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int) *Graph[S, T] {
 				if v, ok := c.vertices.Get(head); ok {
 					g.Vertices[head] = v
 				}
+
 				if _, ok := g.Edges[tail]; !ok {
 					g.Edges[tail] = make(map[S]float64)
 				}
@@ -108,8 +109,22 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int) *Graph[S, T] {
 
 			seen.Add(tail)
 		}
-		for tail, _ := range g.Vertices {
+		for tail := range g.Vertices {
 			targets.Add(tail)
+		}
+	}
+
+	return g
+}
+
+func (c *GraphCache[S, T]) NeighborTFiDF(seed S, step int) *Graph[S, T] {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	g := c.Neighbor(seed, step)
+	for tail, heads := range g.Edges {
+		for head, w := range heads {
+			g.Edges[tail][head] = w / float64(c.edges.df[head])
 		}
 	}
 	return g

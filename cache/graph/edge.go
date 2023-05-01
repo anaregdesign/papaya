@@ -66,6 +66,7 @@ func newEdgeCache[S comparable](ctx context.Context, defaultTTL time.Duration) *
 	c := &edgeCache[S]{
 		defaultTTL: defaultTTL,
 		tf:         make(map[S]map[S]*weight),
+		df:         make(map[S]int),
 	}
 	go c.watch(ctx, time.Minute)
 	return c
