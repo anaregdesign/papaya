@@ -58,13 +58,14 @@ func (w *weight) flush() {
 type edgeCache[S comparable] struct {
 	mu         sync.RWMutex
 	defaultTTL time.Duration
-	cache      map[S]map[S]*weight
+	tf         map[S]map[S]*weight
+	df         map[S]int
 }
 
 func newEdgeCache[S comparable](ctx context.Context, defaultTTL time.Duration) *edgeCache[S] {
 	c := &edgeCache[S]{
 		defaultTTL: defaultTTL,
-		cache:      make(map[S]map[S]*weight),
+		tf:         make(map[S]map[S]*weight),
 	}
 	go c.watch(ctx, time.Minute)
 	return c
@@ -74,15 +75,15 @@ func (c *edgeCache[S]) get(tail, head S) float64 {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if _, ok := c.cache[tail]; !ok {
+	if _, ok := c.tf[tail]; !ok {
 		return 0
 	}
 
-	if _, ok := c.cache[tail][head]; !ok {
+	if _, ok := c.tf[tail][head]; !ok {
 		return 0
 	}
 
-	if w := c.cache[tail][head]; w.isZero() {
+	if w := c.tf[tail][head]; w.isZero() {
 		go c.delete(tail, head)
 		return 0
 	} else {
@@ -94,15 +95,16 @@ func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if _, ok := c.cache[tail]; !ok {
-		c.cache[tail] = make(map[S]*weight)
+	if _, ok := c.tf[tail]; !ok {
+		c.tf[tail] = make(map[S]*weight)
 	}
 
-	if _, ok := c.cache[tail][head]; !ok {
-		c.cache[tail][head] = newWeight()
+	if _, ok := c.tf[tail][head]; !ok {
+		c.tf[tail][head] = newWeight()
+		c.df[head]++
 	}
 
-	c.cache[tail][head].add(w, ttl)
+	c.tf[tail][head].add(w, ttl)
 }
 
 func (c *edgeCache[S]) set(tail, head S, w float64) {
@@ -113,17 +115,21 @@ func (c *edgeCache[S]) delete(tail, head S) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if _, ok := c.cache[tail]; !ok {
+	if _, ok := c.tf[tail]; !ok {
 		return
 	}
 
-	if _, ok := c.cache[tail][head]; !ok {
+	if _, ok := c.tf[tail][head]; !ok {
 		return
 	}
 
-	delete(c.cache[tail], head)
-	if len(c.cache[tail]) == 0 {
-		delete(c.cache, tail)
+	delete(c.tf[tail], head)
+	c.df[head]--
+	if c.df[head] <= 0 {
+		delete(c.df, head)
+	}
+	if len(c.tf[tail]) == 0 {
+		delete(c.tf, tail)
 	}
 }
 
@@ -131,12 +137,16 @@ func (c *edgeCache[S]) flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	for tail, heads := range c.cache {
+	for tail, heads := range c.tf {
 		for head, w := range heads {
 			if w.isZero() {
-				delete(c.cache[tail], head)
-				if len(c.cache[tail]) == 0 {
-					delete(c.cache, tail)
+				c.df[head]--
+				if c.df[head] <= 0 {
+					delete(c.df, head)
+				}
+				delete(c.tf[tail], head)
+				if len(c.tf[tail]) == 0 {
+					delete(c.tf, tail)
 				}
 			}
 		}

@@ -61,10 +61,10 @@ func (c *GraphCache[S, T]) flush() {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	for tail, heads := range c.edges.cache {
+	for tail, heads := range c.edges.tf {
 		if !c.vertices.Has(tail) {
 			c.mu.Lock()
-			delete(c.edges.cache, tail)
+			delete(c.edges.tf, tail)
 			c.mu.Unlock()
 			continue
 		}
@@ -96,7 +96,7 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int) *Graph[S, T] {
 				continue
 			}
 
-			for head, w := range c.edges.cache[tail] {
+			for head, w := range c.edges.tf[tail] {
 				if v, ok := c.vertices.Get(head); ok {
 					g.Vertices[head] = v
 				}
