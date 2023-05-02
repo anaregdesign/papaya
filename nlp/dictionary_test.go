@@ -159,21 +159,21 @@ func TestDictionary_Words2CBOW(t *testing.T) {
 			},
 			want: CBOW{
 				{
-					source: 0,
-					bow: BOW{
+					Source: 0,
+					Bow: BOW{
 						1: 1,
 					},
 				},
 				{
-					source: 1,
-					bow: BOW{
+					Source: 1,
+					Bow: BOW{
 						0: 1,
 						2: 1,
 					},
 				},
 				{
-					source: 2,
-					bow: BOW{
+					Source: 2,
+					Bow: BOW{
 						1: 1,
 					},
 				},
