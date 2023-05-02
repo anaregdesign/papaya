@@ -58,11 +58,11 @@ func (d *Dictionary) Words2CBOW(words []string, window int) CBOW {
 	cbow := make(CBOW, len(words))
 	for i, word := range words {
 		cbow[i] = struct {
-			source int
-			bow    BOW
+			Source int
+			Bow    BOW
 		}{
-			source: d.Word2ID[word],
-			bow:    bows[i],
+			Source: d.Word2ID[word],
+			Bow:    bows[i],
 		}
 	}
 
