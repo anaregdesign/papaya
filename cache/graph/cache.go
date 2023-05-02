@@ -123,16 +123,22 @@ func (c *GraphCache[S, T]) NeighborTFiDF(seed S, step int, top int) *Graph[S, T]
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	used := set.NewSet[S]()
 	g := c.Neighbor(seed, step)
 	for tail, heads := range g.Edges {
-		used.Add(tail)
 		for head, w := range heads {
-			used.Add(head)
 			g.Edges[tail][head] = w / float64(c.edges.df[head])
 		}
 		g.Edges[tail] = pq.FilterMap(g.Edges[tail], top)
 	}
+
+	used := set.NewSet[S]()
+	for tail, heads := range g.Edges {
+		used.Add(tail)
+		for head := range heads {
+			used.Add(head)
+		}
+	}
+
 	for v := range g.Vertices {
 		if !used.Has(v) {
 			delete(g.Vertices, v)
@@ -145,15 +151,20 @@ func (c *GraphCache[S, T]) NeighborTFiDFLog(seed S, step int, top int) *Graph[S,
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	used := set.NewSet[S]()
 	g := c.Neighbor(seed, step)
 	for tail, heads := range g.Edges {
-		used.Add(tail)
 		for head, w := range heads {
-			used.Add(head)
 			g.Edges[tail][head] = w / math.Log2(float64(1+c.edges.df[head]))
 		}
 		g.Edges[tail] = pq.FilterMap(g.Edges[tail], top)
+	}
+
+	used := set.NewSet[S]()
+	for tail, heads := range g.Edges {
+		used.Add(tail)
+		for head := range heads {
+			used.Add(head)
+		}
 	}
 
 	for v := range g.Vertices {
