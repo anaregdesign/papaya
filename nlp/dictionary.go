@@ -39,7 +39,7 @@ func (d *Dictionary) Words2BOW(words []string) BOW {
 	return bow
 }
 
-func (d *Dictionary) Words2CBOW(words []string, window int) []BOW {
+func (d *Dictionary) Words2CBOW(words []string, window int) CBOW {
 	d.AddWords(words)
 
 	bows := make([]BOW, len(words))
@@ -55,11 +55,34 @@ func (d *Dictionary) Words2CBOW(words []string, window int) []BOW {
 			}
 		}
 	}
-	return bows
+	cbow := make(CBOW, len(words))
+	for i, word := range words {
+		cbow[i] = struct {
+			source int
+			bow    BOW
+		}{
+			source: d.Word2ID[word],
+			bow:    bows[i],
+		}
+	}
+
+	return cbow
 }
 
 type BOW map[int]int
 
 func NewBOW() BOW {
 	return make(map[int]int)
+}
+
+type CBOW = []struct {
+	source int
+	bow    BOW
+}
+
+func NewCBOW() CBOW {
+	return make([]struct {
+		source int
+		bow    BOW
+	}, 0)
 }

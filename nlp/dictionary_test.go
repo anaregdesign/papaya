@@ -145,7 +145,7 @@ func TestDictionary_Words2CBOW(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []BOW
+		want   CBOW
 	}{
 		{
 			name: "TestDictionary_Words2CBOW",
@@ -157,16 +157,25 @@ func TestDictionary_Words2CBOW(t *testing.T) {
 				words:  []string{"one", "two", "three"},
 				window: 1,
 			},
-			want: []BOW{
+			want: CBOW{
 				{
-					1: 1,
+					source: 0,
+					bow: BOW{
+						1: 1,
+					},
 				},
 				{
-					0: 1,
-					2: 1,
+					source: 1,
+					bow: BOW{
+						0: 1,
+						2: 1,
+					},
 				},
 				{
-					1: 1,
+					source: 2,
+					bow: BOW{
+						1: 1,
+					},
 				},
 			},
 		},
