@@ -78,7 +78,7 @@ func (c *GraphCache[S, T]) flush() {
 	}
 }
 
-func (c *GraphCache[S, T]) Neighbor(seed S, step int, top int, tfidf bool) *Graph[S, T] {
+func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[S, T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	g := NewGraph[S, T]()
@@ -93,6 +93,7 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, top int, tfidf bool) *Grap
 	targets.Add(seed)
 	seen := set.NewSet[S]()
 	for i := 0; i < step; i++ {
+
 		for _, tail := range targets.Values() {
 			// Skip if already seen
 			if seen.Has(tail) {
@@ -100,7 +101,7 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, top int, tfidf bool) *Grap
 			}
 
 			// Add edges to the graph
-			edges := make(map[S]float64)
+			edges := pq.SortableMap[S, float64]{}
 			for head, w := range c.edges.tf[tail] {
 				if tfidf {
 					edges[head] = w.value() / math.Log2(float64(1+c.edges.df[head]))
@@ -110,18 +111,27 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, top int, tfidf bool) *Grap
 			}
 
 			// Filter light edges
-			if len(c.edges.tf[tail]) > top {
-				g.Edges[tail] = pq.FilterMap(edges, top)
-			}
-
-			// Add new vertices to targets
-			for head := range g.Edges[tail] {
-				g.Vertices[head], _ = c.vertices.Get(head)
-				targets.Add(head)
+			if len(edges) > 0 {
+				g.Edges[tail] = edges.Top(k)
 			}
 
 			// Mark as seen
 			seen.Add(tail)
+		}
+
+		// Find all next targets
+		for _, heads := range g.Edges {
+			for head := range heads {
+				targets.Add(head)
+			}
+		}
+	}
+
+	// Add vertices to the graph
+	for tail, heads := range g.Edges {
+		g.Vertices[tail], _ = c.vertices.Get(tail)
+		for head := range heads {
+			g.Vertices[head], _ = c.vertices.Get(head)
 		}
 	}
 
