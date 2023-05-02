@@ -82,7 +82,7 @@ type CBOW = []struct {
 
 func NewCBOW() CBOW {
 	return make([]struct {
-		source int
-		bow    BOW
+		Source int
+		Bow    BOW
 	}, 0)
 }
