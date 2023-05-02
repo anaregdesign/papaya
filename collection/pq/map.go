@@ -4,8 +4,14 @@ import (
 	"container/heap"
 )
 
-func FilterMap[S comparable, T Number](m map[S]T, top int) map[S]T {
-	if len(m) <= top {
+type SortableMap[S comparable, T Number] map[S]T
+
+func NewSortableMap[S comparable, T Number]() SortableMap[S, T] {
+	return make(map[S]T)
+}
+
+func (m SortableMap[S, T]) Top(k int) SortableMap[S, T] {
+	if len(m) <= k {
 		return m
 	}
 
@@ -22,8 +28,8 @@ func FilterMap[S comparable, T Number](m map[S]T, top int) map[S]T {
 	}
 	heap.Init(&pq)
 
-	filtered := make(map[S]T)
-	for i := 0; i < top; i++ {
+	filtered := NewSortableMap[S, T]()
+	for i := 0; i < k; i++ {
 		item := heap.Pop(&pq).(*Item[S, T])
 		filtered[item.value] = item.priority
 	}

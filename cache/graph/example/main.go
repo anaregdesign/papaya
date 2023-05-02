@@ -14,17 +14,19 @@ func main() {
 	c.AddEdge("a", "b", 1)
 	c.AddEdge("b", "c", 1)
 	c.AddEdge("c", "d", 1)
-	c.AddEdge("c", "e", 1)
-	c.AddEdge("c", "b", 1)
+	c.AddEdge("a", "b", 1)
+	c.AddEdge("a", "c", 1)
+	c.AddEdge("a", "d", 1)
+	c.AddEdge("a", "e", 1)
 
-	g := c.NeighborTFiDFLog("a", 5, 2)
+	g := c.Neighbor("a", 2, 3, true)
 
 	if jsonText, err := json.MarshalIndent(g, "", "\t"); err == nil {
 		println(string(jsonText))
 	}
 
 	/*
-		Output:
+		## Output:
 		{
 		        "vertices": {
 		                "a": "",
@@ -35,17 +37,14 @@ func main() {
 		        },
 		        "edges": {
 		                "a": {
-		                        "b": 0.6309297535714574
+		                        "b": 2,
+		                        "d": 0.6309297535714574,
+		                        "e": 1
 		                },
 		                "b": {
-		                        "c": 1
-		                },
-		                "c": {
-		                        "d": 1,
-		                        "e": 1
+		                        "c": 0.6309297535714574
 		                }
 		        }
 		}
-
 	*/
 }
