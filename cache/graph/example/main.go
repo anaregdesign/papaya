@@ -14,10 +14,12 @@ func main() {
 	c.AddEdge("a", "b", 1)
 	c.AddEdge("b", "c", 1)
 	c.AddEdge("c", "d", 1)
-	c.AddEdge("c", "e", 1)
-	c.AddEdge("c", "b", 1)
+	c.AddEdge("a", "b", 1)
+	c.AddEdge("a", "c", 1)
+	c.AddEdge("a", "d", 1)
+	c.AddEdge("a", "e", 1)
 
-	g := c.NeighborTFiDFLog("a", 5, 2)
+	g := c.Neighbor("a", 5, 3, true)
 
 	if jsonText, err := json.MarshalIndent(g, "", "\t"); err == nil {
 		println(string(jsonText))
