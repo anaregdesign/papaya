@@ -76,8 +76,8 @@ func NewBOW() BOW {
 }
 
 type CBOW = []struct {
-	source int
-	bow    BOW
+	Source int
+	Bow    BOW
 }
 
 func NewCBOW() CBOW {
