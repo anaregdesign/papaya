@@ -9,7 +9,10 @@ import (
 
 func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	c := cache.NewCache[string, string](ctx, 1*time.Second)
+	c := cache.NewCache[string, string](1 * time.Second)
+
+	// Watch the cache, this will remove expired items
+	go c.Watch(ctx, 1*time.Second)
 
 	// Set a value
 	c.Set("key", "value")

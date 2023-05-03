@@ -8,8 +8,9 @@ import (
 )
 
 func main() {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	c := graph.NewGraphCache[string, string](ctx, 1*time.Minute)
+	ctx := context.Background()
+	c := graph.NewGraphCache[string, string](1 * time.Minute)
+	go c.Watch(ctx, 1*time.Second)
 
 	c.AddEdge("a", "b", 1)
 	c.AddEdge("b", "c", 1)

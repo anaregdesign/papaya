@@ -66,14 +66,12 @@ type edgeCache[S comparable] struct {
 	df         map[S]int
 }
 
-func newEdgeCache[S comparable](ctx context.Context, defaultTTL time.Duration) *edgeCache[S] {
-	c := &edgeCache[S]{
+func newEdgeCache[S comparable](defaultTTL time.Duration) *edgeCache[S] {
+	return &edgeCache[S]{
 		defaultTTL: defaultTTL,
 		tf:         make(map[S]map[S]*weight),
 		df:         make(map[S]int),
 	}
-	go c.watch(ctx, time.Minute)
-	return c
 }
 
 func (c *edgeCache[S]) get(tail, head S) float32 {

@@ -17,14 +17,12 @@ type GraphCache[S comparable, T any] struct {
 	edges      *edgeCache[S]
 }
 
-func NewGraphCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration) *GraphCache[S, T] {
-	g := &GraphCache[S, T]{
+func NewGraphCache[S comparable, T any](defaultTTL time.Duration) *GraphCache[S, T] {
+	return &GraphCache[S, T]{
 		defaultTTL: defaultTTL,
-		vertices:   cache.NewCache[S, T](ctx, defaultTTL),
-		edges:      newEdgeCache[S](ctx, defaultTTL),
+		vertices:   cache.NewCache[S, T](defaultTTL),
+		edges:      newEdgeCache[S](defaultTTL),
 	}
-	go g.watch(ctx, time.Minute)
-	return g
 }
 
 func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
@@ -146,13 +144,15 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 	return g
 }
 
-func (c *GraphCache[S, T]) watch(ctx context.Context, interval time.Duration) {
+func (c *GraphCache[S, T]) Watch(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
+			c.vertices.Flush()
+			c.edges.flush()
 			c.flush()
 
 		case <-ctx.Done():

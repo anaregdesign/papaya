@@ -21,13 +21,11 @@ type Cache[S comparable, T any] struct {
 	mu         sync.RWMutex
 }
 
-func NewCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration) *Cache[S, T] {
-	cache := &Cache[S, T]{
+func NewCache[S comparable, T any](defaultTTL time.Duration) *Cache[S, T] {
+	return &Cache[S, T]{
 		defaultTTL: defaultTTL,
 		cache:      make(map[S]volatile[T]),
 	}
-	go cache.watch(ctx, time.Minute)
-	return cache
 }
 
 func (c *Cache[S, T]) Get(key S) (T, bool) {
@@ -103,7 +101,7 @@ func (c *Cache[S, T]) Flush() {
 	}
 }
 
-func (c *Cache[S, T]) watch(ctx context.Context, interval time.Duration) {
+func (c *Cache[S, T]) Watch(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {

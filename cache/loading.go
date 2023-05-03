@@ -13,7 +13,7 @@ type LoadingCache[S comparable, T any] struct {
 
 func NewLoadingCache[S comparable, T any](ctx context.Context, loader function.Loader[S, T], defaultTTL time.Duration) *LoadingCache[S, T] {
 	return &LoadingCache[S, T]{
-		cache:  NewCache[S, T](ctx, defaultTTL),
+		cache:  NewCache[S, T](defaultTTL),
 		loader: loader,
 	}
 }
