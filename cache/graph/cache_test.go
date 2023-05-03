@@ -497,7 +497,7 @@ func TestGraphCache_watch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.watch(tt.args.ctx, tt.args.interval)
+			tt.c.Watch(tt.args.ctx, tt.args.interval)
 		})
 	}
 }
