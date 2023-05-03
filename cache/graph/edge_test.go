@@ -29,7 +29,7 @@ func Test_newWeight(t *testing.T) {
 
 func Test_weightValue_expired(t *testing.T) {
 	type fields struct {
-		value float64
+		value float32
 		ttl   time.Time
 	}
 	tests := []struct {
@@ -64,7 +64,7 @@ func Test_weight_add(t *testing.T) {
 		values []weightValue
 	}
 	type args struct {
-		value float64
+		value float32
 		ttl   time.Duration
 	}
 	tests := []struct {
@@ -88,7 +88,7 @@ func Test_weight_add(t *testing.T) {
 			w := &weight{
 				values: tt.fields.values,
 			}
-			w.add(tt.args.value, tt.args.ttl)
+			w.addWithTTL(tt.args.value, tt.args.ttl)
 		})
 	}
 }
@@ -100,7 +100,7 @@ func Test_weight_value(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   float64
+		want   float32
 	}{
 		{
 			name: "weight_Value",
@@ -173,6 +173,235 @@ func Test_weight_isZero(t *testing.T) {
 			if got := w.isZero(); got != tt.want {
 				t.Errorf("isZero() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_edgeCache_delete(t *testing.T) {
+	type args[S comparable] struct {
+		tail S
+		head S
+	}
+	type testCase[S comparable] struct {
+		name string
+		c    edgeCache[S]
+		args args[S]
+	}
+	tests := []testCase[string]{
+		{
+			name: "edgeCache_delete",
+			c: edgeCache[string]{
+				tf: make(map[string]map[string]*weight),
+			},
+			args: args[string]{
+				tail: "a",
+				head: "b",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.delete(tt.args.tail, tt.args.head)
+		})
+	}
+}
+
+func Test_edgeCache_get(t *testing.T) {
+	type args[S comparable] struct {
+		tail S
+		head S
+	}
+	type testCase[S comparable] struct {
+		name string
+		c    edgeCache[S]
+		args args[S]
+		want float32
+	}
+	tests := []testCase[string]{
+		{
+			name: "edgeCache_get",
+			c: edgeCache[string]{
+				tf: make(map[string]map[string]*weight),
+			},
+			args: args[string]{
+				tail: "a",
+				head: "b",
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.c.get(tt.args.tail, tt.args.head); got != tt.want {
+				t.Errorf("get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_edgeCache_set(t *testing.T) {
+	type args[S comparable] struct {
+		tail S
+		head S
+		w    float32
+	}
+	type testCase[S comparable] struct {
+		name string
+		c    edgeCache[S]
+		args args[S]
+	}
+	tests := []testCase[string]{
+		{
+			name: "edgeCache_set",
+			c: edgeCache[string]{
+				tf: make(map[string]map[string]*weight),
+				df: make(map[string]int),
+			},
+			args: args[string]{
+				tail: "a",
+				head: "b",
+				w:    1,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.set(tt.args.tail, tt.args.head, tt.args.w)
+		})
+	}
+}
+
+func Test_edgeCache_setWithExpiration(t *testing.T) {
+	type args[S comparable] struct {
+		tail       S
+		head       S
+		w          float32
+		expiration time.Time
+	}
+	type testCase[S comparable] struct {
+		name string
+		c    edgeCache[S]
+		args args[S]
+	}
+	tests := []testCase[string]{
+		{
+			name: "edgeCache_setWithExpiration",
+			c: edgeCache[string]{
+				tf: make(map[string]map[string]*weight),
+				df: make(map[string]int),
+			},
+			args: args[string]{
+				tail: "a",
+				head: "b",
+				w:    1,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.setWithExpiration(tt.args.tail, tt.args.head, tt.args.w, tt.args.expiration)
+		})
+	}
+}
+
+func Test_edgeCache_setWithTTL(t *testing.T) {
+	type args[S comparable] struct {
+		tail S
+		head S
+		w    float32
+		ttl  time.Duration
+	}
+	type testCase[S comparable] struct {
+		name string
+		c    edgeCache[S]
+		args args[S]
+	}
+	tests := []testCase[string]{
+		{
+			name: "edgeCache_setWithTTL",
+			c: edgeCache[string]{
+				tf: make(map[string]map[string]*weight),
+				df: make(map[string]int),
+			},
+			args: args[string]{
+				tail: "a",
+				head: "b",
+				w:    1,
+				ttl:  time.Second,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.setWithTTL(tt.args.tail, tt.args.head, tt.args.w, tt.args.ttl)
+		})
+	}
+}
+
+func Test_weight_addWithExpiration(t *testing.T) {
+	type fields struct {
+		values []weightValue
+	}
+	type args struct {
+		value      float32
+		expiration time.Time
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "weight_addWithExpiration",
+			fields: fields{
+				values: []weightValue{},
+			},
+			args: args{
+				value:      1,
+				expiration: time.Now().Add(time.Second),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &weight{
+				values: tt.fields.values,
+			}
+			w.addWithExpiration(tt.args.value, tt.args.expiration)
+		})
+	}
+}
+
+func Test_weight_addWithTTL(t *testing.T) {
+	type fields struct {
+		values []weightValue
+	}
+	type args struct {
+		value float32
+		ttl   time.Duration
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "weight_addWithTTL",
+			fields: fields{
+				values: []weightValue{},
+			},
+			args: args{
+				value: 1,
+				ttl:   time.Second,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &weight{
+				values: tt.fields.values,
+			}
+			w.addWithTTL(tt.args.value, tt.args.ttl)
 		})
 	}
 }

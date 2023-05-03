@@ -7,7 +7,7 @@ import (
 )
 
 type weightValue struct {
-	value      float64
+	value      float32
 	expiration time.Time
 }
 
@@ -25,20 +25,24 @@ func newWeight() *weight {
 	}
 }
 
-func (w *weight) value() float64 {
+func (w *weight) value() float32 {
 	w.flush()
-	var sum float64
+	var sum float32
 	for _, v := range w.values {
 		sum += v.value
 	}
 	return sum
 }
 
-func (w *weight) add(value float64, ttl time.Duration) {
+func (w *weight) addWithExpiration(value float32, expiration time.Time) {
 	w.values = append(w.values, weightValue{
 		value:      value,
-		expiration: time.Now().Add(ttl),
+		expiration: expiration,
 	})
+}
+
+func (w *weight) addWithTTL(value float32, ttl time.Duration) {
+	w.addWithExpiration(value, time.Now().Add(ttl))
 }
 
 func (w *weight) isZero() bool {
@@ -72,7 +76,7 @@ func newEdgeCache[S comparable](ctx context.Context, defaultTTL time.Duration) *
 	return c
 }
 
-func (c *edgeCache[S]) get(tail, head S) float64 {
+func (c *edgeCache[S]) get(tail, head S) float32 {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -92,7 +96,7 @@ func (c *edgeCache[S]) get(tail, head S) float64 {
 	}
 }
 
-func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
+func (c *edgeCache[S]) setWithExpiration(tail, head S, w float32, expiration time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -105,10 +109,14 @@ func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
 		c.df[head]++
 	}
 
-	c.tf[tail][head].add(w, ttl)
+	c.tf[tail][head].addWithExpiration(w, expiration)
 }
 
-func (c *edgeCache[S]) set(tail, head S, w float64) {
+func (c *edgeCache[S]) setWithTTL(tail, head S, w float32, ttl time.Duration) {
+	c.setWithExpiration(tail, head, w, time.Now().Add(ttl))
+}
+
+func (c *edgeCache[S]) set(tail, head S, w float32) {
 	c.setWithTTL(tail, head, w, c.defaultTTL)
 }
 
