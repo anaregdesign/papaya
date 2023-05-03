@@ -96,7 +96,7 @@ func (c *edgeCache[S]) get(tail, head S) float64 {
 	}
 }
 
-func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
+func (c *edgeCache[S]) setWithExpiration(tail, head S, w float64, expiration time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -109,7 +109,11 @@ func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
 		c.df[head]++
 	}
 
-	c.tf[tail][head].addWithTTL(w, ttl)
+	c.tf[tail][head].addWithExpiration(w, expiration)
+}
+
+func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
+	c.setWithExpiration(tail, head, w, time.Now().Add(ttl))
 }
 
 func (c *edgeCache[S]) set(tail, head S, w float64) {

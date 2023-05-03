@@ -35,24 +35,32 @@ func (c *GraphCache[S, T]) getWeight(tail, head S) float64 {
 	return c.edges.get(tail, head)
 }
 
+func (c *GraphCache[S, T]) AddVertexWithExpiration(key S, value T, expiration time.Time) {
+	c.vertices.SetWithExpiration(key, value, expiration)
+}
+
 func (c *GraphCache[S, T]) AddVertexWithTTL(key S, value T, ttl time.Duration) {
-	c.vertices.SetWithTTL(key, value, ttl)
+	c.AddVertexWithExpiration(key, value, time.Now().Add(ttl))
 }
 
 func (c *GraphCache[S, T]) AddVertex(key S, value T) {
 	c.AddVertexWithTTL(key, value, c.defaultTTL)
 }
 
-func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
+func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float64, expiration time.Time) {
 	if !c.vertices.Has(tail) {
 		var noop T
-		c.AddVertexWithTTL(tail, noop, ttl)
+		c.AddVertexWithExpiration(tail, noop, expiration)
 	}
 	if !c.vertices.Has(head) {
 		var noop T
-		c.AddVertexWithTTL(head, noop, ttl)
+		c.AddVertexWithExpiration(head, noop, expiration)
 	}
-	c.edges.setWithTTL(tail, head, w, ttl)
+	c.edges.setWithExpiration(tail, head, w, expiration)
+}
+
+func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
+	c.AddEdgeWithExpiration(tail, head, w, time.Now().Add(ttl))
 }
 
 func (c *GraphCache[S, T]) AddEdge(tail, head S, w float64) {
