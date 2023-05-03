@@ -193,8 +193,8 @@ func TestGraph_getWeight(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.g.getWeight(tt.args.tail, tt.args.head); got != tt.want {
-				t.Errorf("getWeight() = %v, want %v", got, tt.want)
+			if got := tt.g.GetWeight(tt.args.tail, tt.args.head); got != tt.want {
+				t.Errorf("GetWeight() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -475,8 +475,8 @@ func TestGraphCache_getWeight(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.c.getWeight(tt.args.tail, tt.args.head); got != tt.want {
-				t.Errorf("getWeight() = %v, want %v", got, tt.want)
+			if got := tt.c.GetWeight(tt.args.tail, tt.args.head); got != tt.want {
+				t.Errorf("GetWeight() = %v, want %v", got, tt.want)
 			}
 		})
 	}
