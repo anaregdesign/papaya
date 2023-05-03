@@ -17,11 +17,11 @@ type GraphCache[S comparable, T any] struct {
 	edges      *edgeCache[S]
 }
 
-func NewGraphCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration) *GraphCache[S, T] {
+func NewGraphCache[S comparable, T any](defaultTTL time.Duration) *GraphCache[S, T] {
 	return &GraphCache[S, T]{
 		defaultTTL: defaultTTL,
-		vertices:   cache.NewCache[S, T](ctx, defaultTTL),
-		edges:      newEdgeCache[S](ctx, defaultTTL),
+		vertices:   cache.NewCache[S, T](defaultTTL),
+		edges:      newEdgeCache[S](defaultTTL),
 	}
 }
 
@@ -151,6 +151,8 @@ func (c *GraphCache[S, T]) Watch(ctx context.Context, interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
+			c.vertices.Flush()
+			c.edges.flush()
 			c.flush()
 
 		case <-ctx.Done():

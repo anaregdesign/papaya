@@ -21,7 +21,7 @@ type Cache[S comparable, T any] struct {
 	mu         sync.RWMutex
 }
 
-func NewCache[S comparable, T any](ctx context.Context, defaultTTL time.Duration) *Cache[S, T] {
+func NewCache[S comparable, T any](defaultTTL time.Duration) *Cache[S, T] {
 	return &Cache[S, T]{
 		defaultTTL: defaultTTL,
 		cache:      make(map[S]volatile[T]),

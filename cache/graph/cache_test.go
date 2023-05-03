@@ -9,8 +9,8 @@ import (
 )
 
 func TestGraph_AddEdge(t *testing.T) {
-	v := cache.NewCache[string, string](context.Background(), time.Minute)
-	e := newEdgeCache[string](context.Background(), time.Minute)
+	v := cache.NewCache[string, string](time.Minute)
+	e := newEdgeCache[string](time.Minute)
 	type args[S comparable] struct {
 		tail S
 		head S
@@ -43,8 +43,8 @@ func TestGraph_AddEdge(t *testing.T) {
 }
 
 func TestGraph_AddEdgeWithTTL(t *testing.T) {
-	v := cache.NewCache[string, string](context.Background(), time.Minute)
-	e := newEdgeCache[string](context.Background(), time.Minute)
+	v := cache.NewCache[string, string](time.Minute)
+	e := newEdgeCache[string](time.Minute)
 	type args[S comparable] struct {
 		tail S
 		head S
@@ -91,7 +91,7 @@ func TestGraph_AddVertex(t *testing.T) {
 		{
 			name: "TestGraph_AddVertex",
 			g: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value"},
 		},
@@ -118,7 +118,7 @@ func TestGraph_AddVertexWithTTL(t *testing.T) {
 		{
 			name: "TestGraph_AddVertexWithTTL",
 			g: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value", ttl: time.Minute},
 		},
@@ -131,7 +131,7 @@ func TestGraph_AddVertexWithTTL(t *testing.T) {
 }
 
 func TestGraph_GetVertex(t *testing.T) {
-	v := cache.NewCache[string, string](context.Background(), time.Minute)
+	v := cache.NewCache[string, string](time.Minute)
 	v.Set("key", "value")
 
 	type args[S comparable] struct {
@@ -169,7 +169,7 @@ func TestGraph_GetVertex(t *testing.T) {
 }
 
 func TestGraph_getWeight(t *testing.T) {
-	e := newEdgeCache[string](context.Background(), time.Minute)
+	e := newEdgeCache[string](time.Minute)
 
 	type args[S comparable] struct {
 		tail S
@@ -215,8 +215,8 @@ func TestGraphCache_AddEdge(t *testing.T) {
 		{
 			name: "TestGraphCache_AddEdge",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
-				edges:    newEdgeCache[string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
+				edges:    newEdgeCache[string](time.Minute),
 			},
 			args: args[string]{tail: "tail", head: "head", w: 0},
 		},
@@ -244,8 +244,8 @@ func TestGraphCache_AddEdgeWithExpiration(t *testing.T) {
 		{
 			name: "TestGraphCache_AddEdgeWithExpiration",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
-				edges:    newEdgeCache[string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
+				edges:    newEdgeCache[string](time.Minute),
 			},
 			args: args[string]{tail: "tail", head: "head", w: 0, expiration: time.Now()},
 		},
@@ -273,8 +273,8 @@ func TestGraphCache_AddEdgeWithTTL(t *testing.T) {
 		{
 			name: "TestGraphCache_AddEdgeWithTTL",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
-				edges:    newEdgeCache[string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
+				edges:    newEdgeCache[string](time.Minute),
 			},
 			args: args[string]{tail: "tail", head: "head", w: 0, ttl: time.Minute},
 		},
@@ -300,7 +300,7 @@ func TestGraphCache_AddVertex(t *testing.T) {
 		{
 			name: "TestGraphCache_AddVertex",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value"},
 		},
@@ -327,7 +327,7 @@ func TestGraphCache_AddVertexWithExpiration(t *testing.T) {
 		{
 			name: "TestGraphCache_AddVertexWithExpiration",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value", expiration: time.Now()},
 		},
@@ -354,7 +354,7 @@ func TestGraphCache_AddVertexWithTTL(t *testing.T) {
 		{
 			name: "TestGraphCache_AddVertexWithTTL",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string, string]{key: "key", value: "value", ttl: time.Minute},
 		},
@@ -381,7 +381,7 @@ func TestGraphCache_GetVertex(t *testing.T) {
 		{
 			name: "TestGraphCache_GetVertex",
 			c: GraphCache[string, string]{
-				vertices: cache.NewCache[string, string](context.Background(), time.Minute),
+				vertices: cache.NewCache[string, string](time.Minute),
 			},
 			args: args[string]{key: "key"},
 		},
@@ -504,7 +504,6 @@ func TestGraphCache_watch(t *testing.T) {
 
 func TestNewGraphCache(t *testing.T) {
 	type args struct {
-		ctx        context.Context
 		defaultTTL time.Duration
 	}
 	type testCase[S comparable, T any] struct {
@@ -517,7 +516,7 @@ func TestNewGraphCache(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewGraphCache[string, string](tt.args.ctx, tt.args.defaultTTL); !reflect.DeepEqual(got, tt.want) {
+			if got := NewGraphCache[string, string](tt.args.defaultTTL); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewGraphCache() = %v, want %v", got, tt.want)
 			}
 		})
