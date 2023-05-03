@@ -1,5 +1,7 @@
 package graph
 
+import "github.com/anaregdesign/papaya/cache/graph"
+
 type vertexView struct {
 	ID    int    `json:"id"`
 	Label string `json:"label"`
@@ -17,7 +19,7 @@ type GraphView struct {
 	Edges    []EdgeView   `json:"edges"`
 }
 
-func View(g Graph[int, string]) GraphView {
+func NewGraphView(g graph.Graph[int, string]) GraphView {
 	var vertices []vertexView
 	var edges []EdgeView
 
