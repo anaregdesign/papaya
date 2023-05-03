@@ -14,7 +14,7 @@ func TestGraph_AddEdge(t *testing.T) {
 	type args[S comparable] struct {
 		tail S
 		head S
-		w    float64
+		w    float32
 	}
 	type testCase[S comparable, T any] struct {
 		name string
@@ -48,7 +48,7 @@ func TestGraph_AddEdgeWithTTL(t *testing.T) {
 	type args[S comparable] struct {
 		tail S
 		head S
-		w    float64
+		w    float32
 		ttl  time.Duration
 	}
 	type testCase[S comparable, T any] struct {
@@ -179,7 +179,7 @@ func TestGraph_getWeight(t *testing.T) {
 		name string
 		g    GraphCache[S, T]
 		args args[S]
-		want float64
+		want float32
 	}
 	tests := []testCase[string, string]{
 		{

@@ -29,7 +29,7 @@ func Test_newWeight(t *testing.T) {
 
 func Test_weightValue_expired(t *testing.T) {
 	type fields struct {
-		value float64
+		value float32
 		ttl   time.Time
 	}
 	tests := []struct {
@@ -64,7 +64,7 @@ func Test_weight_add(t *testing.T) {
 		values []weightValue
 	}
 	type args struct {
-		value float64
+		value float32
 		ttl   time.Duration
 	}
 	tests := []struct {
@@ -100,7 +100,7 @@ func Test_weight_value(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   float64
+		want   float32
 	}{
 		{
 			name: "weight_Value",
