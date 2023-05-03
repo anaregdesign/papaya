@@ -34,11 +34,15 @@ func (w *weight) value() float64 {
 	return sum
 }
 
-func (w *weight) add(value float64, ttl time.Duration) {
+func (w *weight) addWithExpiration(value float64, expiration time.Time) {
 	w.values = append(w.values, weightValue{
 		value:      value,
-		expiration: time.Now().Add(ttl),
+		expiration: expiration,
 	})
+}
+
+func (w *weight) addWithTTL(value float64, ttl time.Duration) {
+	w.addWithExpiration(value, time.Now().Add(ttl))
 }
 
 func (w *weight) isZero() bool {
@@ -105,7 +109,7 @@ func (c *edgeCache[S]) setWithTTL(tail, head S, w float64, ttl time.Duration) {
 		c.df[head]++
 	}
 
-	c.tf[tail][head].add(w, ttl)
+	c.tf[tail][head].addWithTTL(w, ttl)
 }
 
 func (c *edgeCache[S]) set(tail, head S, w float64) {

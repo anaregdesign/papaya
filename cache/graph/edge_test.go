@@ -88,7 +88,7 @@ func Test_weight_add(t *testing.T) {
 			w := &weight{
 				values: tt.fields.values,
 			}
-			w.add(tt.args.value, tt.args.ttl)
+			w.addWithTTL(tt.args.value, tt.args.ttl)
 		})
 	}
 }
