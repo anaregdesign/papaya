@@ -95,6 +95,8 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 		g.Vertices[seed] = v
 	}
 
+	var wg sync.WaitGroup
+	var mu sync.RWMutex
 	targets := set.NewSet[S]()
 	targets.Add(seed)
 	seen := set.NewSet[S]()
@@ -106,29 +108,41 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 				continue
 			}
 
-			// Add edges to the graph
-			edges := pq.SortableMap[S, float32]{}
-			for head, w := range c.edges.tf[tail] {
-				if tfidf {
-					edges[head] = w.value() / float32(math.Log2(float64(1+c.edges.df[head])))
-				} else {
-					edges[head] = w.value()
+			// Add to wait group
+			wg.Add(1)
+			go func(t S) {
+				defer wg.Done()
+				// Add edges to the graph
+				edges := pq.SortableMap[S, float32]{}
+				for head, w := range c.edges.tf[t] {
+					if tfidf {
+						edges[head] = w.value() / float32(math.Log2(float64(1+c.edges.df[head])))
+					} else {
+						edges[head] = w.value()
+					}
 				}
-			}
 
-			// Filter light edges
-			if len(edges) > 0 {
-				g.Edges[tail] = edges.Top(k)
-			}
-
-			// Mark as seen
-			seen.Add(tail)
+				// Filter light edges
+				if len(edges) > 0 {
+					edges = edges.Top(k)
+					mu.Lock()
+					g.Edges[t] = edges
+					mu.Unlock()
+				}
+				// Mark as seen
+				seen.Add(t)
+			}(tail)
 		}
+
+		// Wait for all goroutines to finish
+		wg.Wait()
 
 		// Find all next targets
 		for _, heads := range g.Edges {
 			for head := range heads {
-				targets.Add(head)
+				if !seen.Has(head) {
+					targets.Add(head)
+				}
 			}
 		}
 	}
