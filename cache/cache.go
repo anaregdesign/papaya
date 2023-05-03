@@ -46,24 +46,22 @@ func (c *Cache[S, T]) Get(key S) (T, bool) {
 	return noop, false
 }
 
-func (c *Cache[S, T]) Set(key S, value T) {
+func (c *Cache[S, T]) SetWithExpiration(key S, value T, expiration time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	c.cache[key] = volatile[T]{
 		value:      value,
-		expiration: time.Now().Add(c.defaultTTL),
+		expiration: expiration,
 	}
 }
 
 func (c *Cache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.SetWithExpiration(key, value, time.Now().Add(ttl))
+}
 
-	c.cache[key] = volatile[T]{
-		value:      value,
-		expiration: time.Now().Add(ttl),
-	}
+func (c *Cache[S, T]) Set(key S, value T) {
+	c.SetWithTTL(key, value, c.defaultTTL)
 }
 
 func (c *Cache[S, T]) Delete(key S) {
