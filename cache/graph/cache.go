@@ -31,7 +31,7 @@ func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
 	return c.vertices.Get(key)
 }
 
-func (c *GraphCache[S, T]) getWeight(tail, head S) float64 {
+func (c *GraphCache[S, T]) getWeight(tail, head S) float32 {
 	return c.edges.get(tail, head)
 }
 
@@ -47,7 +47,7 @@ func (c *GraphCache[S, T]) AddVertex(key S, value T) {
 	c.AddVertexWithTTL(key, value, c.defaultTTL)
 }
 
-func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float64, expiration time.Time) {
+func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float32, expiration time.Time) {
 	if !c.vertices.Has(tail) {
 		var noop T
 		c.AddVertexWithExpiration(tail, noop, expiration)
@@ -59,11 +59,11 @@ func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float64, expira
 	c.edges.setWithExpiration(tail, head, w, expiration)
 }
 
-func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float64, ttl time.Duration) {
+func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float32, ttl time.Duration) {
 	c.AddEdgeWithExpiration(tail, head, w, time.Now().Add(ttl))
 }
 
-func (c *GraphCache[S, T]) AddEdge(tail, head S, w float64) {
+func (c *GraphCache[S, T]) AddEdge(tail, head S, w float32) {
 	c.AddEdgeWithTTL(tail, head, w, c.defaultTTL)
 }
 
@@ -109,10 +109,10 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 			}
 
 			// Add edges to the graph
-			edges := pq.SortableMap[S, float64]{}
+			edges := pq.SortableMap[S, float32]{}
 			for head, w := range c.edges.tf[tail] {
 				if tfidf {
-					edges[head] = w.value() / math.Log2(float64(1+c.edges.df[head]))
+					edges[head] = w.value() / float32(math.Log2(float64(1+c.edges.df[head])))
 				} else {
 					edges[head] = w.value()
 				}
