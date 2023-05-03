@@ -31,7 +31,7 @@ func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
 	return c.vertices.Get(key)
 }
 
-func (c *GraphCache[S, T]) getWeight(tail, head S) float32 {
+func (c *GraphCache[S, T]) GetWeight(tail, head S) float32 {
 	return c.edges.get(tail, head)
 }
 
