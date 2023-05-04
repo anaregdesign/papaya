@@ -98,7 +98,7 @@ func TestGraph_AddVertex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.g.AddVertex(tt.args.key, tt.args.value)
+			tt.g.PutVertex(tt.args.key, tt.args.value)
 		})
 	}
 }
@@ -132,7 +132,7 @@ func TestGraph_AddVertexWithTTL(t *testing.T) {
 
 func TestGraph_GetVertex(t *testing.T) {
 	v := cache.NewCache[string, string](time.Minute)
-	v.Set("key", "value")
+	v.Put("key", "value")
 
 	type args[S comparable] struct {
 		key S
@@ -176,10 +176,11 @@ func TestGraph_getWeight(t *testing.T) {
 		head S
 	}
 	type testCase[S comparable, T any] struct {
-		name string
-		g    GraphCache[S, T]
-		args args[S]
-		want float32
+		name  string
+		g     GraphCache[S, T]
+		args  args[S]
+		want  float32
+		want1 bool
 	}
 	tests := []testCase[string, string]{
 		{
@@ -187,14 +188,19 @@ func TestGraph_getWeight(t *testing.T) {
 			g: GraphCache[string, string]{
 				edges: e,
 			},
-			args: args[string]{tail: "tail", head: "head"},
-			want: 0,
+			args:  args[string]{tail: "tail", head: "head"},
+			want:  0,
+			want1: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.g.GetWeight(tt.args.tail, tt.args.head); got != tt.want {
+			got, got1 := tt.g.GetWeight(tt.args.tail, tt.args.head)
+			if got != tt.want {
 				t.Errorf("GetWeight() = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("GetWeight() = %v, want %v", got1, tt.want1)
 			}
 		})
 	}
@@ -307,7 +313,7 @@ func TestGraphCache_AddVertex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.AddVertex(tt.args.key, tt.args.value)
+			tt.c.PutVertex(tt.args.key, tt.args.value)
 		})
 	}
 }
@@ -445,10 +451,11 @@ func TestGraphCache_getWeight(t *testing.T) {
 		head S
 	}
 	type testCase[S comparable, T any] struct {
-		name string
-		c    GraphCache[S, T]
-		args args[S]
-		want float32
+		name  string
+		c     GraphCache[S, T]
+		args  args[S]
+		want  float32
+		want1 bool
 	}
 	tests := []testCase[string, string]{
 		{
@@ -469,14 +476,19 @@ func TestGraphCache_getWeight(t *testing.T) {
 					},
 				},
 			},
-			args: args[string]{tail: "tail", head: "head"},
-			want: 1,
+			args:  args[string]{tail: "tail", head: "head"},
+			want:  1,
+			want1: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.c.GetWeight(tt.args.tail, tt.args.head); got != tt.want {
+			got, got1 := tt.c.GetWeight(tt.args.tail, tt.args.head)
+			if got != tt.want {
 				t.Errorf("GetWeight() = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("GetWeight() = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

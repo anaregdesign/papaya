@@ -20,15 +20,19 @@ func main() {
 	c.AddEdge("a", "d", 1)
 	c.AddEdge("a", "e", 1)
 
-	g := c.Neighbor("a", 2, 3, true)
+	start := time.Now()
+	g := c.Neighbor("a", 3, 3, true)
+	end := time.Now()
 
 	if jsonText, err := json.MarshalIndent(g, "", "\t"); err == nil {
 		println(string(jsonText))
 	}
 
+	println("Time: ", end.Sub(start).String())
+
 	/*
-		## Output:
-		{
+			## Output:
+			{
 		        "vertices": {
 		                "a": "",
 		                "b": "",
@@ -39,13 +43,17 @@ func main() {
 		        "edges": {
 		                "a": {
 		                        "b": 2,
-		                        "d": 0.6309297535714574,
+		                        "c": 0.63092977,
 		                        "e": 1
 		                },
 		                "b": {
-		                        "c": 0.6309297535714574
+		                        "c": 0.63092977
+		                },
+		                "c": {
+		                        "d": 0.63092977
 		                }
 		        }
 		}
+		Time:  106.926µs
 	*/
 }

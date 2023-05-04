@@ -26,22 +26,31 @@ func NewGraphCache[S comparable, T any](defaultTTL time.Duration) *GraphCache[S,
 }
 
 func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.vertices.Get(key)
 }
 
-func (c *GraphCache[S, T]) GetWeight(tail, head S) float32 {
+func (c *GraphCache[S, T]) GetWeight(tail, head S) (float32, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.edges.get(tail, head)
 }
 
 func (c *GraphCache[S, T]) AddVertexWithExpiration(key S, value T, expiration time.Time) {
-	c.vertices.SetWithExpiration(key, value, expiration)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.vertices.PutWithExpiration(key, value, expiration)
 }
 
 func (c *GraphCache[S, T]) AddVertexWithTTL(key S, value T, ttl time.Duration) {
 	c.AddVertexWithExpiration(key, value, time.Now().Add(ttl))
 }
 
-func (c *GraphCache[S, T]) AddVertex(key S, value T) {
+func (c *GraphCache[S, T]) PutVertex(key S, value T) {
 	c.AddVertexWithTTL(key, value, c.defaultTTL)
 }
 
@@ -54,7 +63,9 @@ func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float32, expira
 		var noop T
 		c.AddVertexWithExpiration(head, noop, expiration)
 	}
-	c.edges.setWithExpiration(tail, head, w, expiration)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.edges.addWithExpiration(tail, head, w, expiration)
 }
 
 func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float32, ttl time.Duration) {
@@ -66,18 +77,12 @@ func (c *GraphCache[S, T]) AddEdge(tail, head S, w float32) {
 }
 
 func (c *GraphCache[S, T]) flush() {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	for tail, heads := range c.edges.tf {
-		if !c.vertices.Has(tail) {
-			c.mu.Lock()
-			delete(c.edges.tf, tail)
-			c.mu.Unlock()
-			continue
-		}
+	for tail, heads := range c.edges.getTF() {
 		for head := range heads {
-			if !c.vertices.Has(head) {
+			if !c.vertices.Has(tail) || !c.vertices.Has(head) {
 				c.edges.delete(tail, head)
 			}
 		}
@@ -95,6 +100,8 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 		g.Vertices[seed] = v
 	}
 
+	var wg sync.WaitGroup
+	var mu sync.RWMutex
 	targets := set.NewSet[S]()
 	targets.Add(seed)
 	seen := set.NewSet[S]()
@@ -106,29 +113,42 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 				continue
 			}
 
-			// Add edges to the graph
-			edges := pq.SortableMap[S, float32]{}
-			for head, w := range c.edges.tf[tail] {
-				if tfidf {
-					edges[head] = w.value() / float32(math.Log2(float64(1+c.edges.df[head])))
-				} else {
-					edges[head] = w.value()
+			// Add to wait group
+			wg.Add(1)
+			go func(t S) {
+				defer wg.Done()
+				// Add edges to the graph
+				edges := pq.SortableMap[S, float32]{}
+				for head, w := range c.edges.getTF()[t] {
+					if tfidf {
+						df := c.edges.getDF()[head]
+						edges[head] = w.value() / float32(math.Log2(float64(1+df)))
+					} else {
+						edges[head] = w.value()
+					}
 				}
-			}
 
-			// Filter light edges
-			if len(edges) > 0 {
-				g.Edges[tail] = edges.Top(k)
-			}
-
-			// Mark as seen
-			seen.Add(tail)
+				// Filter light edges
+				if len(edges) > 0 {
+					edges = edges.Top(k)
+					mu.Lock()
+					g.Edges[t] = edges
+					mu.Unlock()
+				}
+				// Mark as seen
+				seen.Add(t)
+			}(tail)
 		}
+
+		// Wait for all goroutines to finish
+		wg.Wait()
 
 		// Find all next targets
 		for _, heads := range g.Edges {
 			for head := range heads {
-				targets.Add(head)
+				if !seen.Has(head) {
+					targets.Add(head)
+				}
 			}
 		}
 	}
