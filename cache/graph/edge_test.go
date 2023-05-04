@@ -212,10 +212,11 @@ func Test_edgeCache_get(t *testing.T) {
 		head S
 	}
 	type testCase[S comparable] struct {
-		name string
-		c    edgeCache[S]
-		args args[S]
-		want float32
+		name  string
+		c     edgeCache[S]
+		args  args[S]
+		want  float32
+		want1 bool
 	}
 	tests := []testCase[string]{
 		{
@@ -232,8 +233,12 @@ func Test_edgeCache_get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.c.get(tt.args.tail, tt.args.head); got != tt.want {
+			got, got1 := tt.c.get(tt.args.tail, tt.args.head)
+			if got != tt.want {
 				t.Errorf("get() = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("get() = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

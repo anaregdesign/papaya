@@ -74,23 +74,23 @@ func newEdgeCache[S comparable](defaultTTL time.Duration) *edgeCache[S] {
 	}
 }
 
-func (c *edgeCache[S]) get(tail, head S) float32 {
+func (c *edgeCache[S]) get(tail, head S) (float32, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	if _, ok := c.tf[tail]; !ok {
-		return 0
+		return 0, false
 	}
 
 	if _, ok := c.tf[tail][head]; !ok {
-		return 0
+		return 0, false
 	}
 
 	if w := c.tf[tail][head]; w.isZero() {
 		go c.delete(tail, head)
-		return 0
+		return 0, false
 	} else {
-		return w.value()
+		return w.value(), true
 	}
 }
 
