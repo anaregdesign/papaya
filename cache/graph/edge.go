@@ -94,6 +94,20 @@ func (c *edgeCache[S]) get(tail, head S) (float32, bool) {
 	}
 }
 
+func (c *edgeCache[S]) getTF() map[S]map[S]*weight {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.tf
+}
+
+func (c *edgeCache[S]) getDF() map[S]int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.df
+}
+
 func (c *edgeCache[S]) setWithExpiration(tail, head S, w float32, expiration time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

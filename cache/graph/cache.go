@@ -26,14 +26,23 @@ func NewGraphCache[S comparable, T any](defaultTTL time.Duration) *GraphCache[S,
 }
 
 func (c *GraphCache[S, T]) GetVertex(key S) (T, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.vertices.Get(key)
 }
 
 func (c *GraphCache[S, T]) GetWeight(tail, head S) (float32, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.edges.get(tail, head)
 }
 
 func (c *GraphCache[S, T]) AddVertexWithExpiration(key S, value T, expiration time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.vertices.SetWithExpiration(key, value, expiration)
 }
 
@@ -54,6 +63,8 @@ func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float32, expira
 		var noop T
 		c.AddVertexWithExpiration(head, noop, expiration)
 	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.edges.setWithExpiration(tail, head, w, expiration)
 }
 
@@ -66,18 +77,12 @@ func (c *GraphCache[S, T]) AddEdge(tail, head S, w float32) {
 }
 
 func (c *GraphCache[S, T]) flush() {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	for tail, heads := range c.edges.tf {
-		if !c.vertices.Has(tail) {
-			c.mu.Lock()
-			delete(c.edges.tf, tail)
-			c.mu.Unlock()
-			continue
-		}
+	for tail, heads := range c.edges.getTF() {
 		for head := range heads {
-			if !c.vertices.Has(head) {
+			if !c.vertices.Has(tail) || !c.vertices.Has(head) {
 				c.edges.delete(tail, head)
 			}
 		}
@@ -114,9 +119,10 @@ func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[
 				defer wg.Done()
 				// Add edges to the graph
 				edges := pq.SortableMap[S, float32]{}
-				for head, w := range c.edges.tf[t] {
+				for head, w := range c.edges.getTF()[t] {
 					if tfidf {
-						edges[head] = w.value() / float32(math.Log2(float64(1+c.edges.df[head])))
+						df := c.edges.getDF()[head]
+						edges[head] = w.value() / float32(math.Log2(float64(1+df)))
 					} else {
 						edges[head] = w.value()
 					}
