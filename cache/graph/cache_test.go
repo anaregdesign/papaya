@@ -98,7 +98,7 @@ func TestGraph_AddVertex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.g.AddVertex(tt.args.key, tt.args.value)
+			tt.g.PutVertex(tt.args.key, tt.args.value)
 		})
 	}
 }
@@ -132,7 +132,7 @@ func TestGraph_AddVertexWithTTL(t *testing.T) {
 
 func TestGraph_GetVertex(t *testing.T) {
 	v := cache.NewCache[string, string](time.Minute)
-	v.Set("key", "value")
+	v.Put("key", "value")
 
 	type args[S comparable] struct {
 		key S
@@ -313,7 +313,7 @@ func TestGraphCache_AddVertex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.AddVertex(tt.args.key, tt.args.value)
+			tt.c.PutVertex(tt.args.key, tt.args.value)
 		})
 	}
 }

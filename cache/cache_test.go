@@ -172,7 +172,7 @@ func TestCache_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.Set(tt.args.key, tt.args.value)
+			tt.c.Put(tt.args.key, tt.args.value)
 		})
 	}
 }
@@ -200,7 +200,7 @@ func TestCache_SetWithTTL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.SetWithTTL(tt.args.key, tt.args.value, tt.args.ttl)
+			tt.c.PutWithTTL(tt.args.key, tt.args.value, tt.args.ttl)
 		})
 	}
 }

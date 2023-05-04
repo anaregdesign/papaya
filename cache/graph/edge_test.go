@@ -271,7 +271,7 @@ func Test_edgeCache_set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.set(tt.args.tail, tt.args.head, tt.args.w)
+			tt.c.add(tt.args.tail, tt.args.head, tt.args.w)
 		})
 	}
 }
@@ -304,7 +304,7 @@ func Test_edgeCache_setWithExpiration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.setWithExpiration(tt.args.tail, tt.args.head, tt.args.w, tt.args.expiration)
+			tt.c.addWithExpiration(tt.args.tail, tt.args.head, tt.args.w, tt.args.expiration)
 		})
 	}
 }
@@ -338,7 +338,7 @@ func Test_edgeCache_setWithTTL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.c.setWithTTL(tt.args.tail, tt.args.head, tt.args.w, tt.args.ttl)
+			tt.c.addWithTTL(tt.args.tail, tt.args.head, tt.args.w, tt.args.ttl)
 		})
 	}
 }

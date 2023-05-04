@@ -108,7 +108,7 @@ func (c *edgeCache[S]) getDF() map[S]int {
 	return c.df
 }
 
-func (c *edgeCache[S]) setWithExpiration(tail, head S, w float32, expiration time.Time) {
+func (c *edgeCache[S]) addWithExpiration(tail, head S, w float32, expiration time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -124,12 +124,12 @@ func (c *edgeCache[S]) setWithExpiration(tail, head S, w float32, expiration tim
 	c.tf[tail][head].addWithExpiration(w, expiration)
 }
 
-func (c *edgeCache[S]) setWithTTL(tail, head S, w float32, ttl time.Duration) {
-	c.setWithExpiration(tail, head, w, time.Now().Add(ttl))
+func (c *edgeCache[S]) addWithTTL(tail, head S, w float32, ttl time.Duration) {
+	c.addWithExpiration(tail, head, w, time.Now().Add(ttl))
 }
 
-func (c *edgeCache[S]) set(tail, head S, w float32) {
-	c.setWithTTL(tail, head, w, c.defaultTTL)
+func (c *edgeCache[S]) add(tail, head S, w float32) {
+	c.addWithTTL(tail, head, w, c.defaultTTL)
 }
 
 func (c *edgeCache[S]) delete(tail, head S) {

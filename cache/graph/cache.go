@@ -43,14 +43,14 @@ func (c *GraphCache[S, T]) AddVertexWithExpiration(key S, value T, expiration ti
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.vertices.SetWithExpiration(key, value, expiration)
+	c.vertices.PutWithExpiration(key, value, expiration)
 }
 
 func (c *GraphCache[S, T]) AddVertexWithTTL(key S, value T, ttl time.Duration) {
 	c.AddVertexWithExpiration(key, value, time.Now().Add(ttl))
 }
 
-func (c *GraphCache[S, T]) AddVertex(key S, value T) {
+func (c *GraphCache[S, T]) PutVertex(key S, value T) {
 	c.AddVertexWithTTL(key, value, c.defaultTTL)
 }
 
@@ -65,7 +65,7 @@ func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float32, expira
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.edges.setWithExpiration(tail, head, w, expiration)
+	c.edges.addWithExpiration(tail, head, w, expiration)
 }
 
 func (c *GraphCache[S, T]) AddEdgeWithTTL(tail, head S, w float32, ttl time.Duration) {

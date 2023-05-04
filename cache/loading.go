@@ -23,7 +23,7 @@ func (c *LoadingCache[S, T]) Get(key S) (T, bool) {
 		return value, true
 	}
 	if value, ok := c.loader(key); ok {
-		c.cache.Set(key, value)
+		c.cache.Put(key, value)
 		return value, true
 	}
 	var noop T
@@ -31,9 +31,9 @@ func (c *LoadingCache[S, T]) Get(key S) (T, bool) {
 }
 
 func (c *LoadingCache[S, T]) Set(key S, value T) {
-	c.cache.Set(key, value)
+	c.cache.Put(key, value)
 }
 
 func (c *LoadingCache[S, T]) SetWithTTL(key S, value T, ttl time.Duration) {
-	c.cache.SetWithTTL(key, value, ttl)
+	c.cache.PutWithTTL(key, value, ttl)
 }

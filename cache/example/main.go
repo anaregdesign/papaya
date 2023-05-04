@@ -14,8 +14,8 @@ func main() {
 	// Watch the cache, this will remove expired items
 	go c.Watch(ctx, 1*time.Second)
 
-	// Set a value
-	c.Set("key", "value")
+	// Put a value
+	c.Put("key", "value")
 
 	// Get a value
 	if value, ok := c.Get("key"); ok {
