@@ -112,7 +112,11 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 				}
 
 				item := &pq.Item[*edge, float32]{
-					Value:    &edge{tail, head, w},
+					Value: &edge{
+						tail:   tail,
+						head:   head,
+						weight: weight,
+					},
 					Priority: w,
 				}
 				heap.Push(&q, item)
@@ -131,16 +135,16 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 			}
 		}
 		if pickedUp == nil {
-			continue
+			break
 		}
 		mst.PutVertex(pickedUp.head, connected.Vertices[pickedUp.head])
-		mst.PutEdge(pickedUp.tail, pickedUp.head, connected.Edges[pickedUp.tail][pickedUp.head])
+		mst.PutEdge(pickedUp.tail, pickedUp.head, pickedUp.weight)
 
 	}
 	return mst
 }
 
-func (g *Graph[S, T]) ShortestPathTree(seed S, negate bool) *Graph[S, T] {
+func (g *Graph[S, T]) ShortestPathTree(seed S, costFunc func(x float32) float32) *Graph[S, T] {
 	connected := g.ConnectedGraph(seed)
 	spt := NewGraph[S, T]()
 	spt.PutVertex(seed, connected.Vertices[seed])
@@ -165,12 +169,7 @@ func (g *Graph[S, T]) ShortestPathTree(seed S, negate bool) *Graph[S, T] {
 			if seen.Has(head) {
 				continue
 			}
-			var w float32
-			if negate {
-				w = weight
-			} else {
-				w = -weight
-			}
+			cost := costFunc(weight)
 
 			heap.Push(&q, &pq.Item[*edge, float32]{
 				Value: &edge{
@@ -178,11 +177,23 @@ func (g *Graph[S, T]) ShortestPathTree(seed S, negate bool) *Graph[S, T] {
 					head:   head,
 					weight: weight,
 				},
-				Priority: position + w,
+				Priority: position - cost,
 			})
 		}
 
-		pickedUp := heap.Pop(&q).(*pq.Item[*edge, float32])
+		var pickedUp *pq.Item[*edge, float32]
+		for {
+			if q.Len() == 0 {
+				break
+			}
+			pickedUp = heap.Pop(&q).(*pq.Item[*edge, float32])
+			if _, ok := spt.Vertices[pickedUp.Value.head]; !ok {
+				break
+			}
+		}
+		if pickedUp == nil {
+			break
+		}
 		spt.PutVertex(pickedUp.Value.head, connected.Vertices[pickedUp.Value.head])
 		spt.PutEdge(pickedUp.Value.tail, pickedUp.Value.head, pickedUp.Value.weight)
 
