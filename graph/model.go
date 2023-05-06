@@ -88,7 +88,7 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 	}
 
 	mst := NewGraph[S, T]()
-	q := make(pq.PriorityQueue[edge, float32], 0)
+	q := make(pq.PriorityQueue[*edge, float32], 0)
 	heap.Init(&q)
 	seen := set.NewSet[S]()
 
@@ -111,8 +111,8 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 					w = -weight
 				}
 
-				item := &pq.Item[edge, float32]{
-					Value:    edge{tail, head, w},
+				item := &pq.Item[*edge, float32]{
+					Value:    &edge{tail, head, w},
 					Priority: w,
 				}
 				heap.Push(&q, item)
@@ -120,12 +120,18 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 			seen.Add(tail)
 		}
 
-		var pickedUp edge
+		var pickedUp *edge
 		for {
-			pickedUp = heap.Pop(&q).(*pq.Item[edge, float32]).Value
+			if q.Len() == 0 {
+				break
+			}
+			pickedUp = heap.Pop(&q).(*pq.Item[*edge, float32]).Value
 			if _, ok := mst.Vertices[pickedUp.head]; !ok {
 				break
 			}
+		}
+		if pickedUp == nil {
+			continue
 		}
 		mst.AddVertex(pickedUp.head, connected.Vertices[pickedUp.head])
 		mst.AddEdge(pickedUp.tail, pickedUp.head, connected.Edges[pickedUp.tail][pickedUp.head])
