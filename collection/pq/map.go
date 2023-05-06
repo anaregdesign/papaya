@@ -20,9 +20,9 @@ func (m SortableMap[S, T]) Top(k int) SortableMap[S, T] {
 	i := 0
 	for k, v := range m {
 		pq[i] = &Item[S, T]{
-			value:    k,
-			priority: v,
-			index:    i,
+			Value:    k,
+			Priority: v,
+			Index:    i,
 		}
 		i++
 	}
@@ -31,7 +31,7 @@ func (m SortableMap[S, T]) Top(k int) SortableMap[S, T] {
 	filtered := NewSortableMap[S, T]()
 	for i := 0; i < k; i++ {
 		item := heap.Pop(&pq).(*Item[S, T])
-		filtered[item.value] = item.priority
+		filtered[item.Value] = item.Priority
 	}
 	return filtered
 }
