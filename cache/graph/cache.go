@@ -5,6 +5,7 @@ import (
 	"github.com/anaregdesign/papaya/cache"
 	"github.com/anaregdesign/papaya/collection/pq"
 	"github.com/anaregdesign/papaya/collection/set"
+	"github.com/anaregdesign/papaya/graph"
 	"math"
 	"sync"
 	"time"
@@ -89,10 +90,10 @@ func (c *GraphCache[S, T]) flush() {
 	}
 }
 
-func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *Graph[S, T] {
+func (c *GraphCache[S, T]) Neighbor(seed S, step int, k int, tfidf bool) *graph.Graph[S, T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	g := NewGraph[S, T]()
+	g := graph.NewGraph[S, T]()
 
 	if v, ok := c.vertices.Get(seed); !ok {
 		return g

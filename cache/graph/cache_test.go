@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"github.com/anaregdesign/papaya/cache"
+	"github.com/anaregdesign/papaya/graph"
 	"reflect"
 	"testing"
 	"time"
@@ -416,7 +417,7 @@ func TestGraphCache_Neighbor(t *testing.T) {
 		name string
 		c    GraphCache[S, T]
 		args args[S]
-		want *Graph[S, T]
+		want *graph.Graph[S, T]
 	}
 	tests := []testCase[string, string]{
 		// TODO: Add test cases.

@@ -1,7 +1,5 @@
 package graph
 
-import view "github.com/anaregdesign/papaya/view/graph"
-
 type Graph[S comparable, T any] struct {
 	Vertices map[S]T             `json:"vertices,omitempty"`
 	Edges    map[S]map[S]float32 `json:"edges,omitempty"`
@@ -14,12 +12,12 @@ func NewGraph[S comparable, T any]() *Graph[S, T] {
 	}
 }
 
-func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) string) view.GraphView {
-	var vertices []view.VertexView
-	var edges []view.EdgeView
+func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) string) GraphView {
+	var vertices []VertexView
+	var edges []EdgeView
 
 	for i, v := range g.Vertices {
-		vertices = append(vertices, view.VertexView{
+		vertices = append(vertices, VertexView{
 			ID:    key2int(i),
 			Label: value2string(v),
 		})
@@ -27,7 +25,7 @@ func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) strin
 
 	for from, tos := range g.Edges {
 		for to, value := range tos {
-			edges = append(edges, view.EdgeView{
+			edges = append(edges, EdgeView{
 				From:  key2int(from),
 				To:    key2int(to),
 				Value: value,
@@ -35,7 +33,7 @@ func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) strin
 		}
 	}
 
-	return view.GraphView{
+	return GraphView{
 		Vertices: vertices,
 		Edges:    edges,
 	}
