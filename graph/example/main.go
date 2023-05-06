@@ -83,7 +83,7 @@ func main() {
 	*/
 
 	log.Println("Minimum Spanning Tree from vertex 'a'")
-	mst := g.MinimumSpanningTree("a", true)
+	mst := g.MinimumSpanningTree("a", false)
 	if jsonText, err := json.MarshalIndent(mst, "", "\t"); err == nil {
 		log.Println(string(jsonText))
 	}
@@ -97,10 +97,32 @@ func main() {
 		        },
 		        "edges": {
 		                "a": {
+		                        "b": 1,
 		                        "c": 2
-		                },
-		                "c": {
-		                        "b": 6
+		                }
+		        }
+		}
+
+
+	*/
+
+	log.Println("Shortest Path Tree from vertex 'a'")
+	spt := g.ShortestPathTree("a", false)
+	if jsonText, err := json.MarshalIndent(spt, "", "\t"); err == nil {
+		log.Println(string(jsonText))
+	}
+
+	/*
+		{
+		        "vertices": {
+		                "a": "A",
+		                "b": "B",
+		                "c": "C"
+		        },
+		        "edges": {
+		                "a": {
+		                        "b": 1,
+		                        "c": 2
 		                }
 		        }
 		}

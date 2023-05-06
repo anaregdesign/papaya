@@ -140,6 +140,60 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 	return mst
 }
 
+func (g *Graph[S, T]) ShortestPathTree(seed S, negate bool) *Graph[S, T] {
+	connected := g.ConnectedGraph(seed)
+	spt := NewGraph[S, T]()
+	spt.AddVertex(seed, connected.Vertices[seed])
+
+	type edge struct {
+		tail   S
+		head   S
+		weight float32
+	}
+
+	seen := set.NewSet[S]()
+	q := make(pq.PriorityQueue[*edge, float32], 0)
+	heap.Init(&q)
+	pivot := seed
+	position := float32(0.0)
+	for {
+		if len(spt.Vertices) == len(connected.Vertices) {
+			break
+		}
+
+		for head, weight := range connected.Edges[pivot] {
+			if seen.Has(head) {
+				continue
+			}
+			var w float32
+			if negate {
+				w = weight
+			} else {
+				w = -weight
+			}
+
+			heap.Push(&q, &pq.Item[*edge, float32]{
+				Value: &edge{
+					tail:   pivot,
+					head:   head,
+					weight: weight,
+				},
+				Priority: position + w,
+			})
+		}
+
+		pickedUp := heap.Pop(&q).(*pq.Item[*edge, float32])
+		spt.AddVertex(pickedUp.Value.head, connected.Vertices[pickedUp.Value.head])
+		spt.AddEdge(pickedUp.Value.tail, pickedUp.Value.head, pickedUp.Value.weight)
+
+		seen.Add(pivot)
+		pivot = pickedUp.Value.head
+		position = pickedUp.Priority
+	}
+
+	return spt
+}
+
 func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) string) GraphView {
 	var vertices []VertexView
 	var edges []EdgeView
