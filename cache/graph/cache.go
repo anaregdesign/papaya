@@ -56,16 +56,16 @@ func (c *GraphCache[S, T]) PutVertex(key S, value T) {
 }
 
 func (c *GraphCache[S, T]) AddEdgeWithExpiration(tail, head S, w float32, expiration time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if !c.vertices.Has(tail) {
 		var noop T
-		c.AddVertexWithExpiration(tail, noop, expiration)
+		go c.AddVertexWithExpiration(tail, noop, expiration)
 	}
 	if !c.vertices.Has(head) {
 		var noop T
-		c.AddVertexWithExpiration(head, noop, expiration)
+		go c.AddVertexWithExpiration(head, noop, expiration)
 	}
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.edges.addWithExpiration(tail, head, w, expiration)
 }
 

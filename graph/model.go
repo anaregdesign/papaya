@@ -22,14 +22,64 @@ func (g *Graph[S, T]) AddVertex(key S, value T) {
 	g.Vertices[key] = value
 }
 
-func (g *Graph[S, T]) AddEdge(tail, head S, value float32) {
+func (g *Graph[S, T]) AddEdge(tail, head S, weight float32) {
+	if _, ok := g.Vertices[tail]; !ok {
+		var noop T
+		g.Vertices[tail] = noop
+	}
+
+	if _, ok := g.Vertices[head]; !ok {
+		var noop T
+		g.Vertices[head] = noop
+	}
+
 	if _, ok := g.Edges[tail]; !ok {
 		g.Edges[tail] = make(map[S]float32)
 	}
-	g.Edges[tail][head] = value
+	g.Edges[tail][head] = weight
 }
 
-func (g *Graph[S, T]) MinimumSpanningTree(negate bool) *Graph[S, T] {
+func (g *Graph[S, T]) ConnectedGraph(seed S) *Graph[S, T] {
+	targets := set.NewSet[S]()
+	seen := set.NewSet[S]()
+	connected := NewGraph[S, T]()
+	connected.AddVertex(seed, g.Vertices[seed])
+
+	targets.Add(seed)
+	for {
+		for _, tail := range targets.Values() {
+			if seen.Has(tail) {
+				continue
+			}
+
+			for head, weight := range g.Edges[tail] {
+				connected.AddVertex(head, g.Vertices[head])
+				connected.AddEdge(tail, head, weight)
+			}
+			seen.Add(tail)
+		}
+		for _, heads := range connected.Edges {
+			for head := range heads {
+				targets.Add(head)
+			}
+		}
+
+		if targets.Size() == seen.Size() {
+			break
+		}
+	}
+
+	return connected
+}
+
+// MinimumSpanningTree
+/*
+ * MinimumSpanningTree returns a minimum spanning tree of the graph.
+ * The seed is the starting point of the tree.
+ * If negate is true, the maximum spanning tree is returned.
+ */
+func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
+	connected := g.ConnectedGraph(seed)
 
 	type edge struct {
 		tail   S
@@ -38,18 +88,13 @@ func (g *Graph[S, T]) MinimumSpanningTree(negate bool) *Graph[S, T] {
 	}
 
 	mst := NewGraph[S, T]()
-	q := make(pq.PriorityQueue[S, float32], len(g.Vertices))
+	q := make(pq.PriorityQueue[edge, float32], 0)
+	heap.Init(&q)
 	seen := set.NewSet[S]()
 
-	// get a seed vertex
-	var seed S
-	for k := range g.Vertices {
-		seed = k
-		break
-	}
-	mst.AddVertex(seed, g.Vertices[seed])
+	mst.AddVertex(seed, connected.Vertices[seed])
 	for {
-		if len(mst.Vertices) == len(g.Vertices) {
+		if len(mst.Vertices) == len(connected.Vertices) {
 			break
 		}
 
@@ -58,28 +103,33 @@ func (g *Graph[S, T]) MinimumSpanningTree(negate bool) *Graph[S, T] {
 				continue
 			}
 
-			for head, weight := range g.Edges[tail] {
+			for head, weight := range connected.Edges[tail] {
 				var w float32
 				if negate {
-					w = -weight
-				} else {
 					w = weight
+				} else {
+					w = -weight
 				}
 
-				heap.Push(&q, &pq.Item[edge, float32]{
-					Value: edge{
-						tail:   tail,
-						head:   head,
-						weight: w,
-					},
+				item := &pq.Item[edge, float32]{
+					Value:    edge{tail, head, w},
 					Priority: w,
-				})
+				}
+				heap.Push(&q, item)
 			}
 			seen.Add(tail)
 		}
-		pickedUp := heap.Pop(&q).(*pq.Item[edge, float32]).Value
-		mst.AddVertex(pickedUp.tail, g.Vertices[pickedUp.tail])
-		mst.AddEdge(pickedUp.tail, pickedUp.head, pickedUp.weight)
+
+		var pickedUp edge
+		for {
+			pickedUp = heap.Pop(&q).(*pq.Item[edge, float32]).Value
+			if _, ok := mst.Vertices[pickedUp.head]; !ok {
+				break
+			}
+		}
+		mst.AddVertex(pickedUp.head, connected.Vertices[pickedUp.head])
+		mst.AddEdge(pickedUp.tail, pickedUp.head, connected.Edges[pickedUp.tail][pickedUp.head])
+
 	}
 	return mst
 }
