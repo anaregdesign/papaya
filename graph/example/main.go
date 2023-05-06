@@ -12,7 +12,7 @@ func main() {
 	g.AddVertex("b", "B")
 	g.AddVertex("c", "C")
 	g.AddVertex("d", "D")
-	g.AddEdge("d", "d", 1)
+	g.AddEdge("d", "a", 1)
 	g.AddEdge("a", "b", 1)
 	g.AddEdge("a", "c", 2)
 	g.AddEdge("b", "a", 3)
