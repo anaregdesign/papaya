@@ -18,11 +18,11 @@ func NewGraph[S comparable, T any]() *Graph[S, T] {
 	}
 }
 
-func (g *Graph[S, T]) AddVertex(key S, value T) {
+func (g *Graph[S, T]) PutVertex(key S, value T) {
 	g.Vertices[key] = value
 }
 
-func (g *Graph[S, T]) AddEdge(tail, head S, weight float32) {
+func (g *Graph[S, T]) PutEdge(tail, head S, weight float32) {
 	if _, ok := g.Vertices[tail]; !ok {
 		var noop T
 		g.Vertices[tail] = noop
@@ -43,7 +43,7 @@ func (g *Graph[S, T]) ConnectedGraph(seed S) *Graph[S, T] {
 	targets := set.NewSet[S]()
 	seen := set.NewSet[S]()
 	connected := NewGraph[S, T]()
-	connected.AddVertex(seed, g.Vertices[seed])
+	connected.PutVertex(seed, g.Vertices[seed])
 
 	targets.Add(seed)
 	for {
@@ -53,8 +53,8 @@ func (g *Graph[S, T]) ConnectedGraph(seed S) *Graph[S, T] {
 			}
 
 			for head, weight := range g.Edges[tail] {
-				connected.AddVertex(head, g.Vertices[head])
-				connected.AddEdge(tail, head, weight)
+				connected.PutVertex(head, g.Vertices[head])
+				connected.PutEdge(tail, head, weight)
 			}
 			seen.Add(tail)
 		}
@@ -92,7 +92,7 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 	heap.Init(&q)
 	seen := set.NewSet[S]()
 
-	mst.AddVertex(seed, connected.Vertices[seed])
+	mst.PutVertex(seed, connected.Vertices[seed])
 	for {
 		if len(mst.Vertices) == len(connected.Vertices) {
 			break
@@ -133,11 +133,65 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 		if pickedUp == nil {
 			continue
 		}
-		mst.AddVertex(pickedUp.head, connected.Vertices[pickedUp.head])
-		mst.AddEdge(pickedUp.tail, pickedUp.head, connected.Edges[pickedUp.tail][pickedUp.head])
+		mst.PutVertex(pickedUp.head, connected.Vertices[pickedUp.head])
+		mst.PutEdge(pickedUp.tail, pickedUp.head, connected.Edges[pickedUp.tail][pickedUp.head])
 
 	}
 	return mst
+}
+
+func (g *Graph[S, T]) ShortestPathTree(seed S, negate bool) *Graph[S, T] {
+	connected := g.ConnectedGraph(seed)
+	spt := NewGraph[S, T]()
+	spt.PutVertex(seed, connected.Vertices[seed])
+
+	type edge struct {
+		tail   S
+		head   S
+		weight float32
+	}
+
+	seen := set.NewSet[S]()
+	q := make(pq.PriorityQueue[*edge, float32], 0)
+	heap.Init(&q)
+	pivot := seed
+	position := float32(0.0)
+	for {
+		if len(spt.Vertices) == len(connected.Vertices) {
+			break
+		}
+
+		for head, weight := range connected.Edges[pivot] {
+			if seen.Has(head) {
+				continue
+			}
+			var w float32
+			if negate {
+				w = weight
+			} else {
+				w = -weight
+			}
+
+			heap.Push(&q, &pq.Item[*edge, float32]{
+				Value: &edge{
+					tail:   pivot,
+					head:   head,
+					weight: weight,
+				},
+				Priority: position + w,
+			})
+		}
+
+		pickedUp := heap.Pop(&q).(*pq.Item[*edge, float32])
+		spt.PutVertex(pickedUp.Value.head, connected.Vertices[pickedUp.Value.head])
+		spt.PutEdge(pickedUp.Value.tail, pickedUp.Value.head, pickedUp.Value.weight)
+
+		seen.Add(pivot)
+		pivot = pickedUp.Value.head
+		position = pickedUp.Priority
+	}
+
+	return spt
 }
 
 func (g *Graph[S, T]) Render(key2int func(k S) int, value2string func(v T) string) GraphView {

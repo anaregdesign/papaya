@@ -8,17 +8,17 @@ import (
 
 func main() {
 	g := graph.NewGraph[string, string]()
-	g.AddVertex("a", "A")
-	g.AddVertex("b", "B")
-	g.AddVertex("c", "C")
-	g.AddVertex("d", "D")
-	g.AddEdge("d", "a", 1)
-	g.AddEdge("a", "b", 1)
-	g.AddEdge("a", "c", 2)
-	g.AddEdge("b", "a", 3)
-	g.AddEdge("b", "c", 4)
-	g.AddEdge("c", "a", 100)
-	g.AddEdge("c", "b", 6)
+	g.PutVertex("a", "A")
+	g.PutVertex("b", "B")
+	g.PutVertex("c", "C")
+	g.PutVertex("d", "D")
+	g.PutEdge("d", "a", 1)
+	g.PutEdge("a", "b", 1)
+	g.PutEdge("a", "c", 2)
+	g.PutEdge("b", "a", 3)
+	g.PutEdge("b", "c", 4)
+	g.PutEdge("c", "a", 100)
+	g.PutEdge("c", "b", 6)
 
 	log.Println("Original graph")
 	if jsonText, err := json.MarshalIndent(g, "", "\t"); err == nil {
@@ -83,7 +83,7 @@ func main() {
 	*/
 
 	log.Println("Minimum Spanning Tree from vertex 'a'")
-	mst := g.MinimumSpanningTree("a", true)
+	mst := g.MinimumSpanningTree("a", false)
 	if jsonText, err := json.MarshalIndent(mst, "", "\t"); err == nil {
 		log.Println(string(jsonText))
 	}
@@ -97,10 +97,32 @@ func main() {
 		        },
 		        "edges": {
 		                "a": {
+		                        "b": 1,
 		                        "c": 2
-		                },
-		                "c": {
-		                        "b": 6
+		                }
+		        }
+		}
+
+
+	*/
+
+	log.Println("Shortest Path Tree from vertex 'a'")
+	spt := g.ShortestPathTree("a", false)
+	if jsonText, err := json.MarshalIndent(spt, "", "\t"); err == nil {
+		log.Println(string(jsonText))
+	}
+
+	/*
+		{
+		        "vertices": {
+		                "a": "A",
+		                "b": "B",
+		                "c": "C"
+		        },
+		        "edges": {
+		                "a": {
+		                        "b": 1,
+		                        "c": 2
 		                }
 		        }
 		}
