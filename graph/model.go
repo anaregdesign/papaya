@@ -144,6 +144,12 @@ func (g *Graph[S, T]) MinimumSpanningTree(seed S, negate bool) *Graph[S, T] {
 	return mst
 }
 
+// ShortestPathTree
+/*
+ * ShortestPathTree returns a shortest path tree of the graph from the seed.
+ * The costFunc is a function that returns the cost of the edge.
+ * Typically, if the weight means like `importance`, the costFunc is a function that returns the 1 / weight.
+ */
 func (g *Graph[S, T]) ShortestPathTree(seed S, costFunc func(x float32) float32) *Graph[S, T] {
 	connected := g.ConnectedGraph(seed)
 	spt := NewGraph[S, T]()
