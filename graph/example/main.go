@@ -107,7 +107,7 @@ func main() {
 	*/
 
 	log.Println("Shortest Path Tree from vertex 'a'")
-	spt := g.ShortestPathTree("a", func(weight float32) float32 { return -weight })
+	spt := g.ShortestPathTree("a", func(weight float32) float32 { return 1 / weight })
 	if jsonText, err := json.MarshalIndent(spt, "", "\t"); err == nil {
 		log.Println(string(jsonText))
 	}
