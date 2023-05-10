@@ -535,3 +535,55 @@ func TestNewGraphCache(t *testing.T) {
 		})
 	}
 }
+
+func TestGraphCache_DeleteVertex(t *testing.T) {
+	g := NewGraphCache[string, string](time.Minute)
+	g.AddVertexWithTTL("a", "A", 60*time.Second)
+
+	type args[S comparable] struct {
+		key S
+	}
+	type testCase[S comparable, T any] struct {
+		name string
+		c    GraphCache[S, T]
+		args args[S]
+	}
+	tests := []testCase[string, string]{
+		{
+			name: "TestGraphCache_DeleteVertex",
+			c:    *g,
+			args: args[string]{key: "a"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.DeleteVertex(tt.args.key)
+		})
+	}
+}
+
+func TestGraphCache_DeleteEdge(t *testing.T) {
+	g := NewGraphCache[string, string](time.Minute)
+	g.AddEdgeWithTTL("a", "b", 3.14, 60*time.Second)
+	type args[S comparable] struct {
+		tail S
+		head S
+	}
+	type testCase[S comparable, T any] struct {
+		name string
+		c    GraphCache[S, T]
+		args args[S]
+	}
+	tests := []testCase[string, string]{
+		{
+			name: "TestGraphCache_DeleteEdge",
+			c:    *g,
+			args: args[string]{tail: "a", head: "b"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.c.DeleteEdge(tt.args.tail, tt.args.head)
+		})
+	}
+}

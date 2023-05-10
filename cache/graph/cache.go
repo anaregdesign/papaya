@@ -77,6 +77,19 @@ func (c *GraphCache[S, T]) AddEdge(tail, head S, w float32) {
 	c.AddEdgeWithTTL(tail, head, w, c.defaultTTL)
 }
 
+func (c *GraphCache[S, T]) DeleteVertex(key S) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.vertices.Delete(key)
+}
+
+func (c *GraphCache[S, T]) DeleteEdge(tail, head S) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.edges.delete(tail, head)
+}
 func (c *GraphCache[S, T]) flush() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
